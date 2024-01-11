@@ -49,7 +49,7 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
     col1a, col2a, col3a, col4a = st.columns([1,2,2,3], gap="small")
     with col2a: 
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Load Saved Column Map"):
+        if st.button("Load Column Map"):
             try:
                 loaded_map_df = pd.read_csv(saved_map_file_path)
                 st.session_state.loaded_map_df = loaded_map_df
@@ -95,7 +95,7 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
 
     with col3a:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button('Save/Overwrite Column Map'):
+        if st.button('Save Column Map'):
             result_df.to_csv(saved_map_file_path, index=False)
             st.success(f"Column mapped saved")
 

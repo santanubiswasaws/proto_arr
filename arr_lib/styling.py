@@ -7,7 +7,7 @@ BUTTON_STYLE="""
         height: 2em;
         border-radius:6px;
         border:1px solid #aaaaaa;
-        font-size:14px;
+        font-size:12px !important;
         font-weight: bold;
         margin: auto;
         display: grey;

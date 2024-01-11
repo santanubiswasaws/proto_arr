@@ -247,7 +247,7 @@ def main():
     # -- Create sidebar for plot controls
     st.sidebar.title('AI helper')
     query= st.sidebar.text_area('Ask your question - not implemented yet')
-    st.sidebar.button(label="Ask - not functional yet - @todo")
+    st.sidebar.button(label="Ask - @todo")
 
 if __name__ == "__main__":
     main()
