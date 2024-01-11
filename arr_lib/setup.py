@@ -11,3 +11,12 @@ PREDEFINED_DATE_FORMAT_MAP = {
     'dd/mm/yy': '%d/%m/%y',
     'yyyy/mm/dd': '%Y/%m/%d'
 }
+
+ARR_DISPLAY_COLUMN_MAP = {
+        "lastMonthRevenue" : "Opening Period ARR",
+        "newBusiness" : "New Business",
+        "upSell" : "Expansion",
+        "downSell" : "Contraction",
+        "churn" : "Churn",
+        "monthlyRevenue" : "Closing Period ARR"
+}

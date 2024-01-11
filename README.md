@@ -1,11 +1,10 @@
 # ARR Analysis 
 
 
-This is a Python application that enables you to load a CSV file and ask questions about its contents using natural language. The application leverages Language Models (LLMs) to generate responses based on the CSV data. The LLM will only provide answers related to the information present in the CSV.
+This is a Python application that enables you to load a CSV file containing SaaS contract data and generate Recurring Revenue Analysis.Users can also interact with the analysis models, make modifications and run what-if analysis. In addition the application leverages Language Models (LLMs) to generate responses to user queries about the Recurring Revenue Data. 
 
 ## How it works
 
-The application reads the CSV file and processes the data. It utilizes OpenAI LLMs alongside with Langchain Agents in order to answer your questions. The CSV agent then uses tools to find solutions to your questions and generates an appropriate response with the help of a LLM.
 
 The application employs Streamlit to create the graphical user interface (GUI) and utilizes Langchain to interact with the LLM.
 
@@ -24,14 +23,14 @@ To install the repository, follow these steps:
 
 ## Usage
 
-To use the application, execute the `main.py` file using the Streamlit CLI. Make sure you have Streamlit installed before running the application. Run the following command in your terminal:
+To use the application, execute the `arr.py` file using the Streamlit CLI. Make sure you have Streamlit installed before running the application. Run the following command in your terminal:
 
 ```
-streamlit run main.py
+streamlit run arr.py
 ```
 
 ## Contributing
-This repository is intended for educational purposes only and is not designed to accept external contributions. It serves as supplemental material for the YouTube tutorial, demonstrating how to build the project.
+This repository is intended for prototype purposes only and is not designed to accept external contributions. It serves as supplemental material for the YouTube tutorial, demonstrating how to build the project.
 
 For any suggestions or improvements related to the tutorial content, please feel free to reach out through the YouTube channel's comment section.
 

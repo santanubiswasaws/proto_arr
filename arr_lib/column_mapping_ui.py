@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 from arr_lib.column_mapping import map_columns
-from arr_lib.setup import PREDEFINED_COLUMN_HEADERS
-from arr_lib.setup import PREDEFINED_DATE_FORMATS
 from arr_lib.arr_validations import validate_input_data
 from arr_lib.arr_validations import validate_mapping
 import os
-import base64
+
 
 # column mapper with dateformat picker
 def perform_column_mapping(predefined_columns, predefined_date_formats, input_df):
@@ -48,13 +46,14 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
 
     st.subheader("Map columns", divider='green')    
 
-    col1a, col2a = st.columns([1,7], gap="small")
+    col1a, col2a, col3a, col4a = st.columns([1,2,2,3], gap="small")
     with col2a: 
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Load Saved Column Map"):
             try:
                 loaded_map_df = pd.read_csv(saved_map_file_path)
                 st.session_state.loaded_map_df = loaded_map_df
-                st.success(f"Saved map loaded")
+                # st.success(f"Saved map loaded")
 
                 loaded_map_df = st.session_state.loaded_map_df
 
@@ -65,20 +64,23 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
                 st.error(f"File '{saved_map_file_path}' not found. Please save the DataFrame first.")
 
 
-    col1, col2, col3 = st.columns([1,5,2], gap="small")
+    col1, col2, col3 = st.columns([1,6,1], gap="small")
     with col2: 
-        st.markdown(f"Map columns")
+
+        st.markdown(f"<br><p class='md_med'>Map the columns of your input file to specific data elements defined in the app</p>", unsafe_allow_html=True)
+        
         result_df= st.data_editor(
             df, 
             column_config={
                 "columnNames": st.column_config.SelectboxColumn(
-                    "File Columns",
+                    "Columns in File",
                     help="The category of the app",
                     width="medium",
                     options=column_names,
                     required=True,
                 ), 
                 "columnHeaders": st.column_config.TextColumn(
+                    "Application Data Element",
                     disabled=True,
                 ), 
                 "dateFormat" : st.column_config.SelectboxColumn(
@@ -91,8 +93,8 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
             )
         st.session_state.result_df = result_df
 
-    with col3:
-        st.markdown("<br><br>", unsafe_allow_html=True)
+    with col3a:
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.button('Save/Overwrite Column Map'):
             result_df.to_csv(saved_map_file_path, index=False)
             st.success(f"Column mapped saved")
@@ -101,7 +103,7 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
 
         result_df = st.session_state.result_df
        
-        if st.button('Process mapping'):
+        if st.button('  Map Uploaded Data  '):
             
             # Validate that the mapping is complete 
             valid_map = validate_mapping(column_names, predefined_date_formats, result_df)

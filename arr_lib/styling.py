@@ -22,3 +22,18 @@ BUTTON_STYLE="""
     }
                                     
     </style>"""
+
+MARKDOWN_STYLES="""
+    <style>
+    .md_big {
+        font-size:20px !important;
+    }
+    .md_med {
+        font-size:15px !important;
+    }
+    .md_small {
+        font-size:8px !important;
+    }
+    </style>
+"""
+                  

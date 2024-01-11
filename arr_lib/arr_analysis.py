@@ -1,6 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import streamlit as st
+from arr_lib.setup import ARR_DISPLAY_COLUMN_MAP
 
 # implemented with presetting the number of months
 def create_monthly_buckets(df):
@@ -16,32 +17,6 @@ def create_monthly_buckets(df):
     Returns:
     - pd.DataFrame: Processed DataFrame one row for each month - for the customer and contract 
     """
-    # # Check if the required columns are present
-    # required_columns = ['customerId', 'contractId', 'contractStartDate', 'contractEndDate', 'totalContractValue']
-    # if not all(col in df.columns for col in required_columns):
-    #     raise ValueError("Columns 'customerId', 'contractId', 'contractStartDate', 'contractEndDate', and 'totalContractValue' are required in the DataFrame.")
-
-    # # Validate date formats in 'contractStartDate' and 'contractEndDate'
-    # try:
-    #     df['contractStartDate'] = pd.to_datetime(df['contractStartDate'], format='%m/%d/%y')
-    #     df['contractEndDate'] = pd.to_datetime(df['contractEndDate'], format='%m/%d/%y')
-    # except ValueError:
-    #     raise ValueError("Invalid date format in 'contractStartDate' or 'contractEndDate'. Use 'mm/dd/yy' format.")
-
-    # # Calculate the contract duration in months
-    # df['contractDuration'] = (df['contractEndDate'] - df['contractStartDate']).dt.days 
-
-    # # Validate contract duration
-    # valid_contract_duration = df['contractDuration'] > 0
-    # if not valid_contract_duration.all():
-    #     raise ValueError("Invalid contract duration. 'contractEndDate' should be later than 'contractStartDate'.")
-    
-    # # Validate contract value column
-    # if not pd.to_numeric(df['totalContractValue'], errors='coerce').notna().all():
-    #     raise ValueError("Invalid 'totalContractValue'. It must contain numeric values.")
-    
-    # # Calculate contractLength in terms of days
-    # df['contractLength'] = (df['contractEndDate'] - df['contractStartDate']).dt.days
 
     # Calculate contractMonths by rounding contractLength/30 - added 0.01 for boundary conditions
     df['contractMonths'] = ((df['contractDuration'] / 30) + 0.01).round()
@@ -79,7 +54,7 @@ def create_monthly_buckets(df):
 
 
     # filter only the following columns - customerId, contractId, month, monthlyRevenue 
-    second_df = second_df[['customerId', 'contractId', 'month', 'monthlyRevenue']]
+    second_df = second_df[['customerId', 'customerName', 'contractId', 'month', 'monthlyRevenue']]
 
     return second_df
 
@@ -120,80 +95,18 @@ def create_transposed_monthly_revenue_matrix (df):
     print("Original DataFrame:")
 
     # select only the required columns 
-    df = df.loc[:, ['customerId', 'month','monthlyRevenue']]
+    df = df.loc[:, ['customerName', 'customerId', 'month', 'monthlyRevenue']]
 
-    # Melt the original dataframe
-    melted_df = pd.melt(df, id_vars=['customerId', 'month'],
-                        var_name='measureType', value_name='value')
 
-    print("melted df")
-    #print(melted_df)
-    # Get unique months dynamically
     # Transpose the melted dataframe
-    transposed_df = melted_df.pivot_table(index=['customerId', 'measureType'],
-                                        columns='month', values='value', fill_value=0, aggfunc='sum').reset_index()
-
-    #print(transposed_df)
-    # Rename the columns for better clarity
+    transposed_df = df.pivot_table(index=['customerName', 'customerId'],
+                                        columns='month', values='monthlyRevenue', fill_value=0, aggfunc='sum').reset_index()
+    
+    # Remove the month as index 
     transposed_df.columns.name = None  # Remove the 'month' label
 
-    # Display the transposed dataframe
-    print("\nTransposed DataFrame:")
-    print(transposed_df)
 
     return transposed_df
-
-def create_aggregated_arr_metrics(df):
-    """
-    Process df containing transposed monthly metrics for each customer, aggregates the values for all customers and returns the aggregated df
-
-    Parameters:
-    - df (pd.DataFrame): transposed monthly metrics for each customerlevel with revenue, new buessiness, upsell, downsell and churn
-
-    Returns:
-    - pd.DataFrame: Gives the over all metrics for each month - MRR, ARR, newBusiness, upSell, downSell, churn 
-    """
-
-
-    # Group by 'customerId' and aggregate the sum across all measureTypes for each month
-
-    aggregated_df = df.groupby(['measureType'], observed=True).agg({col: 'sum' for col in df.columns[2:]}).reset_index()
-
-    aggregated_df.insert(0, 'customerId', 'Aggregated')
-
-
-    # # Add a new row for 'ARR' which is 12 * monthlyRevenue
-    arr_row = pd.DataFrame({
-        'customerId': ['Aggregated'],
-        'measureType': ['ARR']})
-    
-    # Calculate values for each month
-    values_dict = {
-        month: 12 * aggregated_df.loc[aggregated_df['measureType'] == 'monthlyRevenue', month].iloc[0]
-        for month in df.columns[2:]
-    }
-
-    # Create a Series with the calculated values and set the index to match df.columns
-    arr_series = pd.Series(values_dict, index=df.columns[2:])
-
-    # # Append the new row to the DataFrame
-    # arr_series = pd.Series(values_dict, index=df.columns[2:])
-
-    # Create a DataFrame from the Series
-    arr_row = pd.DataFrame([arr_series], columns=arr_series.index)
-
-    # Add 'customerId' and 'measureType'
-    arr_row['customerId'] = 'Aggregated'
-    arr_row['measureType'] = 'ARR'
-
-    # add the ARR row to the original df 
-    aggregated_df = pd.concat([aggregated_df, arr_row], ignore_index=True)
-
-    # Display the aggregated DataFrame
-    print("\nAggregated DataFrame:")
-    print(aggregated_df)
-
-    return aggregated_df
 
 
 def create_customer_and_aggregated_metrics(df):
@@ -212,6 +125,8 @@ def create_customer_and_aggregated_metrics(df):
     - pd.DataFrame: Gives aggregated metrics  - MRR, ARR, newBusiness, upSell, downSell, churn 
     """
 
+
+    df.insert(2, 'measureType', 'monthlyRevenue')
 
     # Identify 'newBusiness' rows based on the condition
     mask = (df.shift(axis=1, fill_value=0) == 0) & (df != 0)
@@ -235,6 +150,8 @@ def create_customer_and_aggregated_metrics(df):
 
     # Retrieve the 'customerId' values for 'upSell' rows
     up_sell_df['customerId'] = df.loc[up_sell_mask.index, 'customerId'].values
+    # Retrieve the 'customerName' values for 'upSell' rows
+    up_sell_df['customerName'] = df.loc[up_sell_mask.index, 'customerName'].values
 
     # Identify 'downSell' rows based on the condition for all month columns
     down_sell_mask = (df_numeric.diff(axis=1) < 0) & (df_numeric.shift(axis=1) != 0) & (df_numeric !=0 )
@@ -243,6 +160,8 @@ def create_customer_and_aggregated_metrics(df):
 
     # Retrieve the 'customerId' values for 'downSell' rows
     down_sell_df['customerId'] = df.loc[down_sell_mask.index, 'customerId'].values
+    # Retrieve the 'customerName' values for 'downSell' rows
+    down_sell_df['customerName'] = df.loc[down_sell_mask.index, 'customerName'].values
 
     # Calculate 'churn' rows based on the specified condition
     churn_mask = (df_numeric.diff(axis=1) < 0) & (df_numeric == 0)
@@ -252,6 +171,9 @@ def create_customer_and_aggregated_metrics(df):
 
     # Retrieve the 'customerId' values for 'churn' rows
     churn_df['customerId'] = df.loc[churn_mask.index, 'customerId'].values
+    # Retrieve the 'customerName' values for 'churn' rows
+    churn_df['customerName'] = df.loc[churn_mask.index, 'customerName'].values
+
 
     # Append 'upSell', 'downSell', and 'churn' rows to the original DataFrame
     df = pd.concat([df, up_sell_df, down_sell_df, churn_df], ignore_index=True)
@@ -267,25 +189,45 @@ def create_customer_and_aggregated_metrics(df):
 
     # Sort the DataFrame based on 'measureType' using the defined order and 'customerId'
     df['measureType'] = pd.Categorical(df['measureType'], categories=sorting_order, ordered=True)
-    df = df.sort_values(['customerId', 'measureType'])
-
-
-    df_agg = create_aggregated_arr_metrics(df)
-
-    # convert the aggregated df to a waterfall structure
-    df_agg = create_waterfall(df_agg)
+    df = df.sort_values(['customerName','customerId', 'measureType'])
 
     # select only the monthlyRevenue for csutomer level details 
     df_rr = df[df['measureType'] == 'monthlyRevenue']
-
+    # remove the measureType column from customer level arr details 
+    del df_rr['measureType']
 
     # sort mothly_revenue matrix, but first month of sales
-
     df_rr = sort_by_first_month_of_sales(df_rr)
 
-    print(df)
+
+    # create aggregated metrics from customer level metrics 
+    df_agg = create_aggregated_arr_metrics(df)
+    # convert the aggregated df to a waterfall structure
+    df_agg = create_waterfall(df_agg)
+
+    df_agg = annualize_agg_arr(df_agg)
+
+    df_agg = transalte_columns(df_agg)
 
     return df_rr, df_agg
+
+
+def create_aggregated_arr_metrics(df):
+    """
+    Process df containing transposed monthly metrics for each customer, aggregates the values for all customers and returns the aggregated df
+
+    Parameters:
+    - df (pd.DataFrame): transposed monthly metrics for each customerlevel with revenue, new buessiness, upsell, downsell and churn
+
+    Returns:
+    - pd.DataFrame: Gives the over all metrics for each month - MRR, ARR, newBusiness, upSell, downSell, churn 
+    """
+
+
+    # Group by 'customerId', 'CustomerName' and aggregate the sum across all measureTypes for each month
+    aggregated_df = df.groupby(['measureType'], observed=True).agg({col: 'sum' for col in df.columns[3:]}).reset_index()
+
+    return aggregated_df
 
 
 def create_waterfall(df): 
@@ -305,25 +247,29 @@ def create_waterfall(df):
     - pd.DataFrame: Dataframe with waterfall details 
     """
 
-    # Create a copy of the DataFrame for the waterfall version
+    # CCopy the monthly revenue to waterfall df 
     waterfall_df = df[df['measureType']=='monthlyRevenue'].copy()
 
-    # Shift the columns to calculate 'lastMonthRevenue'
-    waterfall_df.iloc[0, 3:] = df.iloc[0, 2:-1].values
+    print(waterfall_df)
+    # Shift the columns of the original df - by one colmn- and add it  to waterfall df - so that it now captures last month's revenue
+    waterfall_df.iloc[0, 2:] = df.iloc[0, 1:-1].values
+
+    print(waterfall_df)
+
+    waterfall_df['measureType'] = waterfall_df['measureType'].cat.add_categories(['lastMonthRevenue'])
 
     # rename the row measureType 
-    waterfall_df.iloc[0, 1] = "lastMonthRevenue"
+    waterfall_df.iloc[0, 0] = "lastMonthRevenue"
 
     # concat the lastMonthrevenue to to the df
     waterfall_df = pd.concat([waterfall_df, df], ignore_index=True)
 
     # Define the sorting order for 'measureType'
-    sorting_order = ['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'ARR']
+    sorting_order = ['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue']
 
     # Sort the DataFrame based on 'measureType' using the defined order and 'customerId'
     waterfall_df['measureType'] = pd.Categorical(waterfall_df['measureType'], categories=sorting_order, ordered=True)
-    waterfall_df = waterfall_df.sort_values(['customerId', 'measureType'])
-
+    waterfall_df = waterfall_df.sort_values(['measureType'])
 
     return waterfall_df
 
@@ -339,13 +285,13 @@ def sort_by_first_month_of_sales(df):
     - pd.DataFrame: Same grid but sorted in first month of sales 
     """
 
-    # assumes the first two columns are customerId and measureType
+    # assumes the first 3 columns are customerId, customerName, and measureType
 
     # Create a new column 'first_non_zero_month' to store the name of the first non-zero sales month
-    df['first_non_zero_month'] = (df.iloc[:, 2:] != 0).idxmax(axis=1)
+    df['first_non_zero_month'] = (df.iloc[:, 3:] != 0).idxmax(axis=1)
 
     # Create a new column 'last_non_zero_month' to store the name of the last non-zero sales month
-    df['last_non_zero_month'] = (df.iloc[:, 2:-1].apply(lambda x: x.iloc[::-1].ne(0).idxmax() if x.any() else 'NaN', axis=1))
+    df['last_non_zero_month'] = (df.iloc[:, 3:-1].apply(lambda x: x.iloc[::-1].ne(0).idxmax() if x.any() else 'NaN', axis=1))
 
     # 'first_non_zero_month', 'last_non_zero_month', and finally by 'customerId'
     sorted_df = df.sort_values(by=[ 'first_non_zero_month', 'last_non_zero_month', 'customerId'])
@@ -359,3 +305,36 @@ def sort_by_first_month_of_sales(df):
     return sorted_df
 
 
+def annualize_agg_arr(df): 
+    """
+    Converts MRR to ARR 
+
+    Parameters:
+    - df (pd.DataFrame): Dataframe with monthly waterfall MRR view
+
+    Returns:
+    - pd.DataFrame: Annualized waterfall df 
+    """
+    annualized_df = df
+#    Select the numerical columns (excluding 'measureType')
+    numerical_columns = annualized_df.columns.difference(['measureType'])
+
+    # Multiply the numerical columns by 12
+    annualized_df[numerical_columns] = annualized_df[numerical_columns] * 12
+
+    return annualized_df
+
+def transalte_columns(df):
+    """
+    Converts the name of the ARR metrcis to meaningful display values
+
+    Parameters:
+    - df (pd.DataFrame): Dataframe with ARR metrics 
+
+    Returns:
+    - pd.DataFrame: Same dataframe but the values in the measureType column is transalted based on the ARR_DISPLAY_COLUMN_MAP dict
+    """
+    # Replace 'measureType' values based on the mapping dictionary
+    df['measureType'] = df['measureType'].replace(ARR_DISPLAY_COLUMN_MAP)
+
+    return df
