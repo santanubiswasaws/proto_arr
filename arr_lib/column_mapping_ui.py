@@ -14,7 +14,7 @@ def perform_column_mapping(predefined_columns, predefined_date_formats, input_df
     column_names = list(input_df.columns)
 
     # file_path for saving the mapping 
-    saved_map_file_path = os.path.join('data', 'column_map.csv')
+    saved_map_file_path = os.path.join('saved_map', 'column_map.csv')
 
     # empty_df to return is the status being returned is False 
     empty_df = pd.DataFrame()
