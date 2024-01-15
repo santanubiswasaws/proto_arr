@@ -5,6 +5,7 @@ from arr_lib.setup import PREDEFINED_DATE_FORMATS
 from arr_lib.arr_analysis import create_monthly_buckets
 from arr_lib.arr_analysis import create_arr_metrics
 from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
+from arr_lib.arr_analysis import reconcile_overrides
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
@@ -108,9 +109,9 @@ def main():
         if (not metrics_df.empty) and st.session_state.column_mapping_status:
             
             # Display customer level detailes 
-            with st.expander('Show/Hide customer level ARR details', expanded = True):
+            with st.expander('Show/Hide customer level Monthly Revenue (MRR) details', expanded = True):
 
-                st.subheader('Customer Level ARR Metrics :', divider='green') 
+                st.subheader('Customer Level MRR Metrics :', divider='green') 
 
                 # set inde to customerId, measureType - for freeze pane functionality
                 display_customer_arr_df = st.session_state.customer_arr_df.round(2)
@@ -183,12 +184,54 @@ def main():
                 st.session_state.edited_df = edited_df
             except Exception as e:
                     st.error(f"An error occurred: {e}") 
-
         st.markdown("<br>", unsafe_allow_html=True)
+
+
+
+        # Step 4a: Override section 
+
+        if 'uploaded_override_file' not in st.session_state:
+            st.session_state.uploaded_override_file = None
+
+        if 'override_df' not in st.session_state:
+            st.session_state.override_df = pd.DataFrame()
+
+        if 'recon_df' not in st.session_state:
+            st.session_state.recon_df = pd.DataFrame()
+
+        if (not planning_df.empty) and st.session_state.column_mapping_status: 
+            st.subheader('Override customer revenue details  :', divider='green') 
+            uploaded_override_file = st.file_uploader("Upload an override CSV file", type=["csv"])   
+            st.session_state.uploaded_override_file = uploaded_override_file
+
+        uploaded_override_file = st.session_state.uploaded_override_file
+        if uploaded_override_file is not None:
+            override_df = pd.read_csv(uploaded_override_file)
+            st.session_state.override_df = override_df
+
+        override_df =  st.session_state.override_df 
+        if (not override_df.empty):    
+            with st.expander('Show/Hide uploaded override files', expanded = True):
+                st.subheader('Uploaded override details :', divider='green')     
+                display_override_df = override_df.round(2)
+                display_override_df.set_index(['customerName'], inplace=True)
+                st.dataframe(display_override_df)
+
+        if (not override_df.empty ) and (not planning_df.empty) and st.session_state.column_mapping_status: 
+            recon_df = reconcile_overrides(st.session_state.planning_df, st.session_state.override_df)
+            st.session_state.recon_df = recon_df
+            with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
+                st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
+                display_recon_df =  recon_df.round(2)    
+                display_recon_df.set_index(['customerName'], inplace=True)                 
+                st.dataframe(display_recon_df) 
 
 
         # Step 5: Replanning ARR section 
         # ------
+            
+
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
 
         if 'replan_customer_arr_df' not in st.session_state:
                 st.session_state.replan_customer_arr_df= pd.DataFrame(columns=['customerId', 'measureType'])
@@ -202,11 +245,11 @@ def main():
         if 'edited_df' not in st.session_state:
                 st.session_state.edited_df = pd.DataFrame()
 
+        # Add a button to calculate monthly contract values
         call_edited_df = st.session_state.edited_df 
         if (not call_edited_df.empty) and st.session_state.column_mapping_status: 
              st.session_state.replan_arr_metrics_button_clicked = st.button("Regenerate ARR Plan", type="primary")
 
-        # Add a button to calculate monthly contract values
         if st.session_state.replan_arr_metrics_button_clicked and st.session_state.column_mapping_status:        
             try:
                 with st.spinner("Replanning ARR Metrics"):
@@ -226,7 +269,7 @@ def main():
             # Display customer level detailes 
 
             with st.expander('Show/Hide customer level replan details', expanded = True):
-                st.subheader('Replanned Customer Level ARR Metrics :', divider='green') 
+                st.subheader('Replanned Customer Level Monthly Revenue (MRR) Metrics :', divider='green') 
 
                 # set inde to customerId, measureType - for freeze pane functionality
                 display_replan_customer_arr_df = st.session_state.replan_customer_arr_df.round(2)
