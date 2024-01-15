@@ -2,6 +2,8 @@ import pandas as pd
 from datetime import datetime
 import streamlit as st
 from arr_lib.setup import ARR_DISPLAY_COLUMN_MAP
+from arr_lib.styling import DF_HIGHLIGHT_TEXT_COLOR, DF_HIGHLIGHT_TEXT_WEIGHT
+from arr_lib.styling import DF_NEGATIVE_HIGHLIGHT_BG_COLOR, DF_POSITIVE_HIGHLIGHT_BG_COLOR
 
 # implemented with presetting the number of months
 def create_monthly_buckets(df):
@@ -383,3 +385,31 @@ def reconcile_overrides(scratch_pad_df, override_df ):
 
     return transposed_result_df
 
+
+def highlight_positive_negative_cells(df):
+    """
+    Apply Pandas dataframe styles - 
+    """
+
+    pos_bg = DF_POSITIVE_HIGHLIGHT_BG_COLOR
+    neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+    text_color = DF_HIGHLIGHT_TEXT_COLOR
+    text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+
+    # Apply styling to the DataFrame, excluding 'customerId' and 'customerName' columns
+    styled_df = df.style.applymap(lambda val: style_positive_negative_lambda(val, pos_bg, neg_bg, text_color, text_weight ))
+
+    return styled_df
+
+
+def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, text_color, text_weight ):
+    """
+    Takes a scalar and returns a string with the css property
+    for red color if the value is negative, and green if it's greater than 0.
+    """
+    if val < 0:
+        return f'background-color: {negative_bg_color}; color: {text_color}; font-weight: {text_weight}'
+    elif val > 0:
+        return f'background-color: {positive_bg_color}; color: {text_color}; font-weight: {text_weight}'
+    else:
+        return ''

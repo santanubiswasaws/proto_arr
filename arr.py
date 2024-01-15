@@ -6,6 +6,7 @@ from arr_lib.arr_analysis import create_monthly_buckets
 from arr_lib.arr_analysis import create_arr_metrics
 from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
 from arr_lib.arr_analysis import reconcile_overrides
+from arr_lib.arr_analysis import highlight_positive_negative_cells
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
@@ -201,7 +202,7 @@ def main():
 
         if (not planning_df.empty) and st.session_state.column_mapping_status: 
             st.subheader('Override customer revenue details  :', divider='green') 
-            uploaded_override_file = st.file_uploader("Upload an override CSV file", type=["csv"])   
+            uploaded_override_file = st.file_uploader("Upload an override file - it must contain customerId and customerName columns", type=["csv"])   
             st.session_state.uploaded_override_file = uploaded_override_file
 
         uploaded_override_file = st.session_state.uploaded_override_file
@@ -211,21 +212,29 @@ def main():
 
         override_df =  st.session_state.override_df 
         if (not override_df.empty):    
-            with st.expander('Show/Hide uploaded override files', expanded = True):
-                st.subheader('Uploaded override details :', divider='green')     
-                display_override_df = override_df.round(2)
-                display_override_df.set_index(['customerName'], inplace=True)
-                st.dataframe(display_override_df)
+            try:
+                with st.expander('Show/Hide uploaded override files', expanded = True):
+                    st.subheader('Uploaded override details :', divider='green')     
+                    display_override_df = override_df.round(2)
+                    display_override_df.set_index(['customerName'], inplace=True)
+                    st.dataframe(display_override_df)
+            except Exception as e:
+                st.error(f"Error: {e}") 
 
         if (not override_df.empty ) and (not planning_df.empty) and st.session_state.column_mapping_status: 
-            recon_df = reconcile_overrides(st.session_state.planning_df, st.session_state.override_df)
-            st.session_state.recon_df = recon_df
-            with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
-                st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
-                display_recon_df =  recon_df.round(2)    
-                display_recon_df.set_index(['customerName'], inplace=True)                 
-                st.dataframe(display_recon_df) 
-
+            try: 
+                recon_df = reconcile_overrides(st.session_state.planning_df, st.session_state.override_df)
+                st.session_state.recon_df = recon_df
+                with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
+                    st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
+                    display_recon_df = recon_df.round(0)   
+                    display_recon_df.set_index(['customerName', 'customerId'], inplace=True)  
+                    display_recon_df = highlight_positive_negative_cells(display_recon_df)   
+                    display_recon_df = display_recon_df.format("{:,.2f}")      
+                    st.dataframe(display_recon_df) 
+            except Exception as e:
+                st.error(f"Error: {e}") 
+                                 
 
         # Step 5: Replanning ARR section 
         # ------
