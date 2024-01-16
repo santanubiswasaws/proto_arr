@@ -47,6 +47,10 @@ GLOBAL_STYLING = """
 .stDeployButton {
     visibility: hidden;
 }
+
+#MainMenu {
+    visibility: hidden; 
+}
 </style>
 
 """
