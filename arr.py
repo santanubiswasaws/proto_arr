@@ -10,6 +10,7 @@ from arr_lib.arr_analysis import highlight_positive_negative_cells
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
+from arr_lib.styling import GLOBAL_STYLING
 
 # on_change callback for file upload 
 def clear_session_cb ():
@@ -23,6 +24,7 @@ def main():
 
 
     st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
+    st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
     st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
 
     # Upload CSV file
@@ -181,7 +183,7 @@ def main():
         # -----
                 
         st.markdown("<br><br><br><br>", unsafe_allow_html=True)
-        
+
         if 'planning_df' not in st.session_state:
                 st.session_state.planning_df = pd.DataFrame(columns=['customerId', 'measureType'])
 

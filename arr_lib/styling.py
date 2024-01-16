@@ -37,6 +37,20 @@ MARKDOWN_STYLES="""
     </style>
 """
 
+GLOBAL_STYLING = """
+<style>
+.stActionButton {
+    visibility: hidden;
+
+}
+
+.stDeployButton {
+    visibility: hidden;
+}
+</style>
+
+"""
+
 DF_NEGATIVE_HIGHLIGHT_BG_COLOR = "red"
 DF_POSITIVE_HIGHLIGHT_BG_COLOR = "green"
 DF_HIGHLIGHT_TEXT_COLOR = "white"  
