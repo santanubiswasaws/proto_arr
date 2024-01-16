@@ -25,7 +25,7 @@ def main():
 
     st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
     st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
-    st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
+    st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
     # Upload CSV file
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"], on_change = clear_session_cb)
