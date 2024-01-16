@@ -28,6 +28,17 @@ def validate_input_data(df):
     except:
         st.error("Columns 'customerId', 'customerName', 'contractId', 'contractStartDate', 'contractEndDate', 'totalContractValue', 'startDateFormat', and 'endDateFormat' are required columns")
         return False
+    
+    # Check if 'customeId' column has a value for all rows
+    if not df['customerId'].notna().all():
+        st.error("Not all rows have values in the 'customerID' column.")
+        return False
+
+    # Check if 'customeName' column has a value for all rows
+    if not df['customerName'].notna().all():
+        st.error("Not all rows have values in the 'customerName' column.")
+        return False
+
 
     # Validate date formats in 'contractStartDate' and 'contractEndDate'
 
