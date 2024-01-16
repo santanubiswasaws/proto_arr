@@ -129,8 +129,59 @@ def main():
         st.markdown("<br><br>", unsafe_allow_html=True)
 
 
+        # Step 4a: Override section 
+
+        if 'uploaded_override_file' not in st.session_state:
+            st.session_state.uploaded_override_file = None
+
+        if 'override_df' not in st.session_state:
+            st.session_state.override_df = pd.DataFrame()
+
+        if 'recon_df' not in st.session_state:
+            st.session_state.recon_df = pd.DataFrame()
+
+        if (not metrics_df.empty) and st.session_state.column_mapping_status: 
+            st.subheader('Override customer revenue details  :', divider='green') 
+            uploaded_override_file = st.file_uploader("Upload an override file - it must contain customerId and customerName columns", type=["csv"])   
+            st.session_state.uploaded_override_file = uploaded_override_file
+
+        uploaded_override_file = st.session_state.uploaded_override_file
+        if uploaded_override_file is not None:
+            override_df = pd.read_csv(uploaded_override_file)
+            st.session_state.override_df = override_df
+
+        override_df =  st.session_state.override_df 
+        if (not override_df.empty):    
+            try:
+                with st.expander('Show/Hide uploaded override files', expanded = True):
+                    st.subheader('Uploaded override details :', divider='green')     
+                    display_override_df = override_df.round(2)
+                    display_override_df.set_index(['customerName'], inplace=True)
+                    st.dataframe(display_override_df)
+            except Exception as e:
+                st.error(f"Error: {e}") 
+
+        if (not override_df.empty ) and (not metrics_df.empty) and st.session_state.column_mapping_status: 
+            try: 
+                recon_df = reconcile_overrides(st.session_state.customer_arr_df, st.session_state.override_df)
+                st.session_state.recon_df = recon_df
+                with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
+                    st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
+                    display_recon_df = recon_df.round(0)   
+                    display_recon_df.set_index(['customerName', 'customerId'], inplace=True)  
+                    display_recon_df = highlight_positive_negative_cells(display_recon_df)   
+                    display_recon_df = display_recon_df.format("{:,.2f}")      
+                    st.dataframe(display_recon_df) 
+            except Exception as e:
+                st.error(f"Error: {e}") 
+
+
+
         # Step 4: Generate Scratchpad 
         # -----
+                
+        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+        
         if 'planning_df' not in st.session_state:
                 st.session_state.planning_df = pd.DataFrame(columns=['customerId', 'measureType'])
 
@@ -189,51 +240,6 @@ def main():
 
 
 
-        # Step 4a: Override section 
-
-        if 'uploaded_override_file' not in st.session_state:
-            st.session_state.uploaded_override_file = None
-
-        if 'override_df' not in st.session_state:
-            st.session_state.override_df = pd.DataFrame()
-
-        if 'recon_df' not in st.session_state:
-            st.session_state.recon_df = pd.DataFrame()
-
-        if (not planning_df.empty) and st.session_state.column_mapping_status: 
-            st.subheader('Override customer revenue details  :', divider='green') 
-            uploaded_override_file = st.file_uploader("Upload an override file - it must contain customerId and customerName columns", type=["csv"])   
-            st.session_state.uploaded_override_file = uploaded_override_file
-
-        uploaded_override_file = st.session_state.uploaded_override_file
-        if uploaded_override_file is not None:
-            override_df = pd.read_csv(uploaded_override_file)
-            st.session_state.override_df = override_df
-
-        override_df =  st.session_state.override_df 
-        if (not override_df.empty):    
-            try:
-                with st.expander('Show/Hide uploaded override files', expanded = True):
-                    st.subheader('Uploaded override details :', divider='green')     
-                    display_override_df = override_df.round(2)
-                    display_override_df.set_index(['customerName'], inplace=True)
-                    st.dataframe(display_override_df)
-            except Exception as e:
-                st.error(f"Error: {e}") 
-
-        if (not override_df.empty ) and (not planning_df.empty) and st.session_state.column_mapping_status: 
-            try: 
-                recon_df = reconcile_overrides(st.session_state.planning_df, st.session_state.override_df)
-                st.session_state.recon_df = recon_df
-                with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
-                    st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
-                    display_recon_df = recon_df.round(0)   
-                    display_recon_df.set_index(['customerName', 'customerId'], inplace=True)  
-                    display_recon_df = highlight_positive_negative_cells(display_recon_df)   
-                    display_recon_df = display_recon_df.format("{:,.2f}")      
-                    st.dataframe(display_recon_df) 
-            except Exception as e:
-                st.error(f"Error: {e}") 
                                  
 
         # Step 5: Replanning ARR section 
