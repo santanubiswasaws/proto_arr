@@ -341,7 +341,7 @@ def transalte_columns(df):
 
     return df
 
-def reconcile_overrides(scratch_pad_df, override_df ):
+def reconcile_overrides(original_df, override_df ):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
 
@@ -354,19 +354,19 @@ def reconcile_overrides(scratch_pad_df, override_df ):
     """
 
     # Replace NaN values with zeros in both DataFrames
-    scratch_pad_df.fillna(0, inplace=True)
+    original_df.fillna(0, inplace=True)
     override_df.fillna(0, inplace=True)
 
 
     # Melt the DataFrames to convert months into rows
-    melted_df_edited = pd.melt(scratch_pad_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_edited')
+    melted_df_original = pd.melt(original_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_original')
     melted_df_override = pd.melt(override_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_override')
 
     # Merge the melted DataFrames on 'customerId', 'customerName', and 'month'
-    merged_df = melted_df_edited.merge(melted_df_override, on=['customerId', 'customerName', 'month'], how='outer')
+    merged_df = melted_df_original.merge(melted_df_override, on=['customerId', 'customerName', 'month'], how='outer')
 
     # Calculate the differences for each row using vectorized operations
-    merged_df['difference'] =  merged_df['value_override'].fillna(0) - merged_df['value_edited'].fillna(0)
+    merged_df['difference'] =  merged_df['value_override'].fillna(0) - merged_df['value_original'].fillna(0)
 
     # Create a new DataFrame containing 'customerId', 'customerName', 'month', and 'difference'
     result_df = merged_df[['customerId', 'customerName', 'month', 'difference']]
@@ -384,7 +384,6 @@ def reconcile_overrides(scratch_pad_df, override_df ):
     transposed_result_df = transposed_result_df[(transposed_result_df.drop(['customerId', 'customerName'], axis=1) != 0).any(axis=1)]
 
     return transposed_result_df
-
 
 def highlight_positive_negative_cells(df):
     """
@@ -413,3 +412,42 @@ def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, te
         return f'background-color: {positive_bg_color}; color: {text_color}; font-weight: {text_weight}'
     else:
         return ''
+    
+
+
+def apply_overrides(original_df, override_df ):
+    """
+    Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
+
+    Parameters:
+    - scratch_pad_df (pd.DataFrame): scratch pad df 
+    - override_df  (pd.DataFrame): override df 
+
+    Returns:
+    - pd.DataFrame: for each customer as row and months as columns, it creates the differnce between the tow input dfs 
+    """
+
+
+    # Melt the DataFrames to convert months into rows
+    melted_df_original = pd.melt(original_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_original')
+    melted_df_override = pd.melt(override_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_override')
+
+    # Merge the melted DataFrames on 'customerId', 'customerName', and 'month'
+    merged_df = melted_df_original.merge(melted_df_override, on=['customerId', 'customerName', 'month'], how='outer')
+
+    # Apply the logic: if value_override is not NaN, use it, otherwise, use the value from value_edited
+    merged_df['value'] = merged_df.apply(lambda row: row['value_override'] if not pd.isna(row['value_override']) else row['value_original'], axis=1)
+
+    # Create a new DataFrame containing 'customerId', 'customerName', 'month', and 'difference'
+    result_df = merged_df[['customerId', 'customerName', 'month', 'value']]
+
+    # Sort the result DataFrame by 'customerId' and 'month'
+    result_df.sort_values(by=['customerId', 'month'], inplace=True)
+
+    # Transpose the result DataFrame to make months become columns
+    transposed_result_df = result_df.pivot_table(index=['customerId', 'customerName'], columns='month', values='value', fill_value=0).reset_index()
+
+    # Remove the month as index 
+    transposed_result_df.columns.name = None 
+
+    return transposed_result_df

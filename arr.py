@@ -7,6 +7,7 @@ from arr_lib.arr_analysis import create_arr_metrics
 from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
 from arr_lib.arr_analysis import reconcile_overrides
 from arr_lib.arr_analysis import highlight_positive_negative_cells
+from arr_lib.arr_analysis import apply_overrides
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
@@ -178,8 +179,17 @@ def main():
                 st.error(f"Error: {e}") 
 
 
+        # 4b. Display options for applying override
 
-        # Step 4: Generate Scratchpad 
+
+        if 'apply_override' not in st.session_state:
+            st.session_state.apply_override = None 
+
+        if (not override_df.empty ) and (not metrics_df.empty) and st.session_state.column_mapping_status:        
+            st.session_state.apply_override = st.checkbox('Apply Override')
+
+
+        # Step 5: Generate Scratchpad 
         # -----
                 
         st.markdown("<br><br><br><br>", unsafe_allow_html=True)
@@ -209,8 +219,12 @@ def main():
                     if 'planning_df' in st.session_state:
                         st.session_state.planning_df = pd.DataFrame()
 
+                    
                     # Call the method to create the metrics df
-                    planning_df = st.session_state.customer_arr_df  
+                    if st.session_state.apply_override: 
+                         planning_df = apply_overrides(st.session_state.customer_arr_df, st.session_state.override_df)
+                    else:
+                        planning_df = st.session_state.customer_arr_df  
                     st.session_state.planning_df = planning_df
 
                     # reset replan output dfs 
@@ -244,7 +258,7 @@ def main():
 
                                  
 
-        # Step 5: Replanning ARR section 
+        # Step 6: Replanning ARR section 
         # ------
             
 
