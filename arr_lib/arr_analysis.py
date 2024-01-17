@@ -204,12 +204,23 @@ def create_customer_and_aggregated_metrics(df):
 
     # create aggregated metrics from customer level metrics 
     df_agg = create_aggregated_arr_metrics(df)
+
     # convert the aggregated df to a waterfall structure
     df_agg = create_waterfall(df_agg)
-
+    # multiply monthly numbers by 12 to annualize 
     df_agg = annualize_agg_arr(df_agg)
 
-    df_agg = transalte_columns(df_agg)
+
+    # create additional metrics - like gross renewal rate, net renewal rate etc
+
+    df_agg = calculate_metrics(df_agg)
+
+    # create logo waterfall 
+    # df_logo_waterfall = calculate_logo_count_waterfall(df)
+    # print(df_logo_waterfall)
+
+    # Rename the column headers based on predefined mapping 
+    df_agg = rename_columns(df_agg)
 
     return df_rr, df_agg
 
@@ -230,6 +241,84 @@ def create_aggregated_arr_metrics(df):
     aggregated_df = df.groupby(['measureType'], observed=True).agg({col: 'sum' for col in df.columns[3:]}).reset_index()
 
     return aggregated_df
+
+def calculate_metrics (df):
+    """
+    calculates the following metrics 
+        - Gross Renewal Rate : measured as 1 - { (cummulative sum of last 12 months churn and downsell ) / revenue of 12 month prior } 
+        - Net Retention Rate : measured as 1 - { (cummulative sum of last 12 months upsell, churn and downsell ) / revenue of 12 month prior  } 
+        - Yearly ARR Growth: measured as   ( current period reenue / revenue of 12 month prior) - 1
+    """
+
+    upSell_df = df[df['measureType']=='upSell']
+    downSell_df = df[df['measureType']=='downSell']
+    churn_df = df[df['measureType']=='churn']
+    monthlyRev_df = df[df['measureType']=='monthlyRevenue']
+
+    print (monthlyRev_df)
+
+    trailing_period = 12
+
+    trailing_upSell_df = calculate_trailing_metrics(upSell_df, trailing_period, 'trailingUpSell')
+    trailing_downSell_df = calculate_trailing_metrics(downSell_df, trailing_period, 'trailingDownSell')
+    trailing_churn_df = calculate_trailing_metrics(churn_df, trailing_period, 'trailingChurn')
+    previous_period_revenue = calculate_previous_period_values(monthlyRev_df, trailing_period, 'monthlyRevenue', 'prevYearRevenue')
+
+  
+    metrics_df = pd.concat([df, trailing_upSell_df, trailing_downSell_df, trailing_churn_df, previous_period_revenue ], ignore_index=True)
+
+    print (metrics_df)
+    return metrics_df
+
+def calculate_trailing_metrics(df, trailing_period, newMeasureType): 
+    """
+    calculates the trailing cummulative sum of a metrics for a given period 
+    """
+    df = df.transpose()
+    df.columns = df.iloc[0]  # Set the first row as column headers
+    df = df[1:]  # Remove the first row
+
+    print("--------- inside cal -------")
+    print(df)
+
+    # return rolling cummulative period 
+    cum_column_df =  df.rolling(window=trailing_period, min_periods=1).sum()
+    
+    df[newMeasureType] = cum_column_df
+    df_transposed = df.transpose()
+    df_transposed.reset_index(inplace=True)
+    df_transposed.rename(columns={'index': 'measureType'}, inplace=True)
+
+    return df_transposed[df_transposed['measureType']==newMeasureType]
+
+def calculate_previous_period_values(df, trailing_period, measureType, newMeasureType): 
+    """
+    calculates the trailing cummulative sum of a metrics for a given period 
+    """
+    df = df.transpose()
+    df.columns = df.iloc[0]  # Set the first row as column headers
+    df = df[1:]  # Remove the first row
+
+    # return rolling cummulative period 
+    prev_df =  df[measureType].shift(trailing_period)
+
+    df[newMeasureType] = prev_df
+    df_transposed = df.transpose()
+    df_transposed.reset_index(inplace=True)
+    df_transposed.rename(columns={'index': 'measureType'}, inplace=True)
+
+    return  df_transposed[df_transposed['measureType']==newMeasureType]
+
+def calculate_logo_count_waterfall (df):
+    """
+    calculates the logo waterfall metrics 
+        Beging Customer Count
+        New Customers Count
+        Churn Customers Count
+        Ending Customers Count 
+    """
+
+    return df
 
 
 def create_waterfall(df): 
@@ -326,7 +415,7 @@ def annualize_agg_arr(df):
 
     return annualized_df
 
-def transalte_columns(df):
+def rename_columns(df):
     """
     Converts the name of the ARR metrcis to meaningful display values
 

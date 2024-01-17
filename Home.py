@@ -28,13 +28,22 @@ def main():
     st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
     st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
-    # Upload CSV file
-    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"], on_change = clear_session_cb)
+    # Initialize file upload details 
+    if 'uploaded_file' not in st.session_state:
+        st.session_state.uploaded_file = None
+        st.session_state.df = pd.DataFrame()
+        print('getting wiped')
 
+    # upload files
+    uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"], on_change = clear_session_cb)
     if uploaded_file is not None:
         df = pd.read_csv(uploaded_file)
-
-
+        st.session_state.df = df
+        st.session_state.uploaded_file = uploaded_file       
+  
+    # Conitnue processing is uploaded data is available 
+    df = st.session_state.df
+    if not df.empty:
         # Display mapped data 
         with st.expander('Show/Hide uploaded data', expanded=True):
             st.subheader('Uploaded Data :', divider='green') 
@@ -43,7 +52,7 @@ def main():
         st.markdown("<br>", unsafe_allow_html=True)
 
 
-        # Column Mapping Section 
+        # Step 1: Column Mapping Section 
 
         # initialize mapped_df
         if 'mapped_df' not in st.session_state:
@@ -60,7 +69,7 @@ def main():
 
         mapped_df = st.session_state.mapped_df
         
-        # Display mapped uploaded data 
+        # Step 2: Display mapped uploaded data 
         if (not mapped_df.empty) and st.session_state.column_mapping_status:
 
             # Display mapped data 
@@ -319,9 +328,9 @@ def main():
 
 
     # -- Create sidebar for plot controls
-    st.sidebar.title('AI helper')
-    query= st.sidebar.text_area('Ask your question - not implemented yet')
-    st.sidebar.button(label="Ask - @todo")
+    # st.sidebar.title('AI helper')
+    # query= st.sidebar.text_area('Ask your question - not implemented yet')
+    # st.sidebar.button(label="Ask - @todo")
 
 if __name__ == "__main__":
     main()
