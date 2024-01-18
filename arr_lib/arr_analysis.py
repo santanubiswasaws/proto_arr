@@ -4,6 +4,7 @@ import streamlit as st
 from arr_lib.setup import ARR_DISPLAY_COLUMN_MAP
 from arr_lib.styling import DF_HIGHLIGHT_TEXT_COLOR, DF_HIGHLIGHT_TEXT_WEIGHT
 from arr_lib.styling import DF_NEGATIVE_HIGHLIGHT_BG_COLOR, DF_POSITIVE_HIGHLIGHT_BG_COLOR
+from arr_lib.styling import DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD, DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
 
 # implemented with presetting the number of months
 def create_monthly_buckets(df):
@@ -213,14 +214,11 @@ def create_customer_and_aggregated_metrics(df):
 
     # create additional metrics - like gross renewal rate, net renewal rate etc
 
-    # df_agg = calculate_metrics(df_agg)
+    df_agg = calculate_metrics(df_agg)
 
     # create logo waterfall 
     # df_logo_waterfall = calculate_logo_count_waterfall(df)
     # print(df_logo_waterfall)
-
-    # Rename the column headers based on predefined mapping 
-    df_agg = rename_columns(df_agg)
 
     return df_rr, df_agg
 
@@ -274,22 +272,6 @@ def calculate_metrics (df):
     temp_metrics_df['grossRenewalRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
     temp_metrics_df['netRetentionRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn'] + row['trailingUpSell']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
     temp_metrics_df['yearlyRevenueGrowth'] = temp_metrics_df.apply(lambda row: ( row['monthlyRevenue']  / row['prevYearRevenue'] - 1) if row['prevYearRevenue'] is not None else None, axis=1)
-
-    # filter only the new columns 
-    temp_metrics_df = temp_metrics_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRenewalRate', 'netRetentionRate', 'yearlyRevenueGrowth']]
-
-    # these metrics are formatted with 0 precision 
-    temp_metrics_df['lastMonthRevenue'] = temp_metrics_df['newBusiness'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['newBusiness'] = temp_metrics_df['newBusiness'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['upSell'] = temp_metrics_df['upSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['downSell'] = temp_metrics_df['downSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['churn'] = temp_metrics_df['churn'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['monthlyRevenue'] = temp_metrics_df['monthlyRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
-
-    # these metrics are formatted as % with 2 digit precision 
-    temp_metrics_df['grossRenewalRate'] = temp_metrics_df['grossRenewalRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['netRetentionRate'] = temp_metrics_df['netRetentionRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
-    temp_metrics_df['yearlyRevenueGrowth'] = temp_metrics_df['yearlyRevenueGrowth'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
 
     # transpose back 
     temp_metrics_df = temp_metrics_df.transpose()
@@ -463,9 +445,49 @@ def stylize_metrics_df(df):
     """
 
     # drop metrics with intermediate
+    # transpose the df - so that measureType become columns and months become rows
+    stylized_df = df.transpose()
+    stylized_df.columns = stylized_df.iloc[0]  # Set the first row as column headers
+    stylized_df = stylized_df[1:]  # Remove the first row
+
+    # filter only the relevant columns
+    stylized_df = stylized_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRenewalRate', 'netRetentionRate', 'yearlyRevenueGrowth']]
+
+    # these metrics are formatted with 0 precision 
+    stylized_df['lastMonthRevenue'] = stylized_df['lastMonthRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['newBusiness'] = stylized_df['newBusiness'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['upSell'] = stylized_df['upSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['downSell'] = stylized_df['downSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['churn'] = stylized_df['churn'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['monthlyRevenue'] = stylized_df['monthlyRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+
+    # these metrics are formatted as % with 2 digit precision 
+    stylized_df['grossRenewalRate'] = stylized_df['grossRenewalRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['netRetentionRate'] = stylized_df['netRetentionRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['yearlyRevenueGrowth'] = stylized_df['yearlyRevenueGrowth'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+
+    # transpose back 
+    stylized_df = stylized_df.transpose()
+    stylized_df.reset_index(inplace=True)
+    stylized_df.rename(columns={'index': 'measureType'}, inplace=True)
+
+    # replace the metrics name to redable values as per map 
+    stylized_df = rename_columns(stylized_df)
+
+    stylized_df.set_index(['measureType'], inplace=True)
 
 
-    return df
+    # insert blank rows at 6th place - and provide a dummy index value of one space
+    #stylized_df = insert_blank_row(stylized_df, 6, ' ')
+
+
+    print(stylized_df)
+
+    stylized_df=decorate_agg_metrics(stylized_df)
+
+    return stylized_df
+
+
 
 def reconcile_overrides(original_df, override_df ):
     """
@@ -539,6 +561,89 @@ def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, te
     else:
         return ''
     
+
+
+
+# Assuming DF_POSITIVE_HIGHLIGHT_BG_COLOR, DF_NEGATIVE_HIGHLIGHT_BG_COLOR, 
+# DF_HIGHLIGHT_TEXT_COLOR, and DF_HIGHLIGHT_TEXT_WEIGHT are defined elsewhere.
+    
+def insert_blank_row(df, row_index, index_value, fill_value): 
+    """
+    Insert a blank row into a DataFrame at the specified row index, 
+    maintaining the categorical 'measureType' index.
+
+    :param df: Original DataFrame.
+    :param row_index: Index at which the blank row should be inserted.
+    :return: New DataFrame with the blank row inserted.
+    """
+    # Create a DataFrame with a single blank row
+    blank_row = pd.DataFrame({col: fill_value for col in df.columns}, index=[row_index])
+    
+    # Concatenate the original DataFrame with the blank row DataFrame
+    df_updated = pd.concat([df.iloc[:row_index], blank_row, df.iloc[row_index:]])
+
+    # Reassign 'measureType' index values
+    measureType_values = df.index.get_level_values('measureType').tolist()
+    measureType_values.insert(row_index, index_value)  # Insert a placeholder for the blank row
+    df_updated.index = pd.Index(measureType_values, name='measureType')
+    
+    return df_updated
+
+
+def decorate_agg_metrics(df):
+    """
+    Apply Pandas dataframe styles to the aggregated metrics df 
+    currently the following decorations are implemented 
+
+    1. insert a blank separator row 
+    2. Highlight negatives values in color red 
+    3. Highlight the opening anfd closing period ARR is shades of green 
+    
+    Note: Streamlit has does not render all the pandas styling 
+    """
+
+    # insert a blank row after aggregated ARR metrics 
+    df = insert_blank_row(df, 6, '---------------------------------', '--------')
+
+    neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+    curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
+    prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
+    text_color = DF_HIGHLIGHT_TEXT_COLOR
+    text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+
+    # Function to apply styling to each cell
+    def style_cell(val):
+        # Check for None, empty string, spaces, or strings starting with '--'
+        if val is None or val == '' or str(val).isspace() or str(val).startswith('--'):
+            return ''
+        try:
+            val_num = float(str(val).replace(",", "").replace("%", ""))
+            if val_num < 0:
+                return f'color: {neg_bg}; font-weight: {text_weight}'
+            else:
+                return ''
+        except ValueError:
+            return ''
+
+    # Function to apply styling to each row
+    def style_row(row):
+        if row.name == 'Opening Period ARR':
+            return [f'background-color: {prev_period_bg}'] * len(row)
+        elif row.name == 'Closing Period ARR':
+            return [f'background-color: {curr_period_bg}'] * len(row)
+        else:
+            return [''] * len(row)
+
+    # Apply styling to each cell
+    styled_df = df.style.apply(lambda x: x.map(style_cell), axis=None)
+
+    # Apply styling to each row
+    styled_df = styled_df.apply(style_row, axis=1)
+
+    # Set text alignment
+    styled_df = styled_df.set_properties(**{'text-align': 'right'}) # does not work with current Streamlit version
+
+    return styled_df
 
 
 def apply_overrides(original_df, override_df ):

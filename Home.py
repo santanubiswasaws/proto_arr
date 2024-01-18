@@ -134,11 +134,10 @@ def main():
 
             st.subheader('Aggregated ARR Metrics :', divider='green') 
 
-            # set index to customerId, measureType - for freeze pane functionality
-            
 
-            display_metrics_df= stylize_metrics_df(st.session_state.metrics_df).round(0)
-            display_metrics_df.set_index(['measureType'], inplace=True)
+            # Stylize aggregated metrics DF
+            display_metrics_df= stylize_metrics_df(st.session_state.metrics_df)
+
             st.dataframe(display_metrics_df, use_container_width=True)
         
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -324,9 +323,7 @@ def main():
             st.subheader('Replanned Aggregated ARR Metrics :', divider='green') 
 
             # set inde to customerId, measureType - for freeze pane functionality
-            display_replan_metrics_df = st.session_state.replan_metrics_df.round(0)
-            # drop 
-            display_replan_metrics_df.set_index(['measureType'], inplace=True)
+            display_replan_metrics_df = stylize_metrics_df(st.session_state.replan_metrics_df)
             st.dataframe(display_replan_metrics_df, use_container_width=True)
 
 
