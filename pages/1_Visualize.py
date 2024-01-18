@@ -3,11 +3,12 @@ import pandas as pd
 import altair as alt
 
 
-print('...........in visualize..............')
-print (st.session_state.uploaded_file) 
+if 'metrics_df' not in st.session_state: 
+    metrics_df = pd.DataFrame()
+else:
+    metrics_df = st.session_state.metrics_df
+    customer_arr_df = st.session_state.customer_arr_df
 
-metrics_df = st.session_state.metrics_df
-customer_arr_df = st.session_state.customer_arr_df
 if metrics_df.empty: 
     st.error('Please generate ARR metrics')
 else:
@@ -48,5 +49,3 @@ else:
     with col2: 
         # Print the sorted DataFrame
         st.dataframe(top_10_customers.round(0), use_container_width=True,  hide_index=True)
-
-print('........... end of  visualize..............')
