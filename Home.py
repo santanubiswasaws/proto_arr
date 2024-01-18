@@ -8,6 +8,7 @@ from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
 from arr_lib.arr_analysis import reconcile_overrides
 from arr_lib.arr_analysis import highlight_positive_negative_cells
 from arr_lib.arr_analysis import apply_overrides
+from arr_lib.arr_analysis import stylize_metrics_df
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
@@ -134,7 +135,9 @@ def main():
             st.subheader('Aggregated ARR Metrics :', divider='green') 
 
             # set index to customerId, measureType - for freeze pane functionality
-            display_metrics_df= st.session_state.metrics_df.round(0)
+            
+
+            display_metrics_df= stylize_metrics_df(st.session_state.metrics_df).round(0)
             display_metrics_df.set_index(['measureType'], inplace=True)
             st.dataframe(display_metrics_df, use_container_width=True)
         

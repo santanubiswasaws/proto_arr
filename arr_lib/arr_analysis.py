@@ -255,8 +255,7 @@ def calculate_metrics (df):
     churn_df = df[df['measureType']=='churn']
     monthlyRev_df = df[df['measureType']=='monthlyRevenue']
 
-    print (monthlyRev_df)
-
+    # caculate trailing yearly metrics 
     trailing_period = 12
 
     trailing_upSell_df = calculate_trailing_metrics(upSell_df, trailing_period, 'trailingUpSell')
@@ -265,10 +264,40 @@ def calculate_metrics (df):
     previous_period_revenue = calculate_previous_period_values(monthlyRev_df, trailing_period, 'monthlyRevenue', 'prevYearRevenue')
 
   
-    metrics_df = pd.concat([df, trailing_upSell_df, trailing_downSell_df, trailing_churn_df, previous_period_revenue ], ignore_index=True)
+    temp_metrics_df = pd.concat([df, trailing_upSell_df, trailing_downSell_df, trailing_churn_df, previous_period_revenue ], ignore_index=True)
 
-    print (metrics_df)
-    return metrics_df
+    # transpose the df - so that measureType become columns and months become rows
+    temp_metrics_df = temp_metrics_df.transpose()
+    temp_metrics_df.columns = temp_metrics_df.iloc[0]  # Set the first row as column headers
+    temp_metrics_df = temp_metrics_df[1:]  # Remove the first row
+
+    temp_metrics_df['grossRenewalRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
+    temp_metrics_df['netRetentionRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn'] + row['trailingUpSell']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
+    temp_metrics_df['yearlyRevenueGrowth'] = temp_metrics_df.apply(lambda row: ( row['monthlyRevenue']  / row['prevYearRevenue'] - 1) if row['prevYearRevenue'] is not None else None, axis=1)
+
+    # filter only the new columns 
+    temp_metrics_df = temp_metrics_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRenewalRate', 'netRetentionRate', 'yearlyRevenueGrowth']]
+
+    # these metrics are formatted with 0 precision 
+    temp_metrics_df['lastMonthRevenue'] = temp_metrics_df['newBusiness'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['newBusiness'] = temp_metrics_df['newBusiness'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['upSell'] = temp_metrics_df['upSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['downSell'] = temp_metrics_df['downSell'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['churn'] = temp_metrics_df['churn'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['monthlyRevenue'] = temp_metrics_df['monthlyRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
+
+    # these metrics are formatted as % with 2 digit precision 
+    temp_metrics_df['grossRenewalRate'] = temp_metrics_df['grossRenewalRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['netRetentionRate'] = temp_metrics_df['netRetentionRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+    temp_metrics_df['yearlyRevenueGrowth'] = temp_metrics_df['yearlyRevenueGrowth'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+
+    # transpose back 
+    temp_metrics_df = temp_metrics_df.transpose()
+    temp_metrics_df.reset_index(inplace=True)
+    temp_metrics_df.rename(columns={'index': 'measureType'}, inplace=True)
+
+    print (temp_metrics_df)
+    return temp_metrics_df
 
 def calculate_trailing_metrics(df, trailing_period, newMeasureType): 
     """
@@ -277,9 +306,6 @@ def calculate_trailing_metrics(df, trailing_period, newMeasureType):
     df = df.transpose()
     df.columns = df.iloc[0]  # Set the first row as column headers
     df = df[1:]  # Remove the first row
-
-    print("--------- inside cal -------")
-    print(df)
 
     # return rolling cummulative period 
     cum_column_df =  df.rolling(window=trailing_period, min_periods=1).sum()
@@ -317,6 +343,7 @@ def calculate_logo_count_waterfall (df):
         Churn Customers Count
         Ending Customers Count 
     """
+    # @todo 
 
     return df
 
@@ -427,6 +454,16 @@ def rename_columns(df):
     """
     # Replace 'measureType' values based on the mapping dictionary
     df['measureType'] = df['measureType'].replace(ARR_DISPLAY_COLUMN_MAP)
+
+    return df
+
+def stylize_metrics_df(df):
+    """
+    Stylize the dataframe using pandas styler class and applymap 
+    """
+
+    # drop metrics with intermediate
+
 
     return df
 

@@ -18,5 +18,8 @@ ARR_DISPLAY_COLUMN_MAP = {
         "upSell" : "Expansion",
         "downSell" : "Contraction",
         "churn" : "Churn",
-        "monthlyRevenue" : "Closing Period ARR"
+        "monthlyRevenue" : "Closing Period ARR", 
+        "grossRenewalRate" : "Gross Renewal Rate", 
+        "netRetentionRate": "Net Retention Rate", 
+        "yearlyRevenueGrowth" : "Yearly Revenue Growth Rate"
 }
