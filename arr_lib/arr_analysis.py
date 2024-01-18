@@ -213,7 +213,7 @@ def create_customer_and_aggregated_metrics(df):
 
     # create additional metrics - like gross renewal rate, net renewal rate etc
 
-    df_agg = calculate_metrics(df_agg)
+    # df_agg = calculate_metrics(df_agg)
 
     # create logo waterfall 
     # df_logo_waterfall = calculate_logo_count_waterfall(df)
