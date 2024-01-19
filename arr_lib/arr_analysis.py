@@ -76,9 +76,9 @@ def create_arr_metrics(df):
     """
 
     transposed_df = create_transposed_monthly_revenue_matrix(df)
-    customer_arr_df, metrics_df = create_customer_and_aggregated_metrics(transposed_df)
+    customer_arr_df, logo_waterfall_df, metrics_df = create_customer_and_aggregated_metrics(transposed_df)
 
-    return customer_arr_df, metrics_df
+    return customer_arr_df, logo_waterfall_df, metrics_df
 
 
 
@@ -125,6 +125,7 @@ def create_customer_and_aggregated_metrics(df):
 
     Returns:
     - pd.DataFrame: Gives the over all metrics for each month for each customer - MRR, ARR, newBusiness, upSell, downSell, churn 
+    - pd.DataFrame: Gives the over all logo count waterfall 
     - pd.DataFrame: Gives aggregated metrics  - MRR, ARR, newBusiness, upSell, downSell, churn 
     """
 
@@ -132,14 +133,21 @@ def create_customer_and_aggregated_metrics(df):
     df.insert(2, 'measureType', 'monthlyRevenue')
 
     # Identify 'newBusiness' rows based on the condition
-    mask = (df.shift(axis=1, fill_value=0) == 0) & (df != 0)
+    new_business_mask = (df.shift(axis=1, fill_value=0) == 0) & (df != 0)
 
     # Create a new DataFrame with 'newBusiness' rows
-    new_business_df = df[mask].copy()
+    new_business_df = df[new_business_mask].copy()
     new_business_df['measureType'] = 'newBusiness'
 
     # Fill NaN values with 0
     new_business_df = new_business_df.fillna(0)
+
+    # Retrieve the 'customerId' values for 'upSell' rows
+    new_business_df['customerId'] = df.loc[new_business_mask.index, 'customerId'].values
+    # Retrieve the 'customerName' values for 'upSell' rows
+    new_business_df['customerName'] = df.loc[new_business_mask.index, 'customerName'].values
+
+
 
     # Identify 'upSell' rows based on the condition for all month columns
     df_numeric = df.iloc[:, 2:].apply(pd.to_numeric, errors='coerce')  # Convert columns to numeric
@@ -202,25 +210,24 @@ def create_customer_and_aggregated_metrics(df):
     # sort mothly_revenue matrix, but first month of sales
     df_rr = sort_by_first_month_of_sales(df_rr)
 
-
     # create aggregated metrics from customer level metrics 
     df_agg = create_aggregated_arr_metrics(df)
 
     # convert the aggregated df to a waterfall structure
     df_agg = create_waterfall(df_agg)
+    
     # multiply monthly numbers by 12 to annualize 
     df_agg = annualize_agg_arr(df_agg)
 
-
     # create additional metrics - like gross renewal rate, net renewal rate etc
-
-    df_agg = calculate_metrics(df_agg)
+    df_agg = calculate_retention_metrics(df_agg)
 
     # create logo waterfall 
-    # df_logo_waterfall = calculate_logo_count_waterfall(df)
+    df_logo_waterfall = calculate_logo_count_waterfall(df)
+
     # print(df_logo_waterfall)
 
-    return df_rr, df_agg
+    return df_rr, df_logo_waterfall, df_agg
 
 
 def create_aggregated_arr_metrics(df):
@@ -240,7 +247,8 @@ def create_aggregated_arr_metrics(df):
 
     return aggregated_df
 
-def calculate_metrics (df):
+
+def calculate_retention_metrics (df):
     """
     calculates the following metrics 
         - Gross Renewal Rate : measured as 1 - { (cummulative sum of last 12 months churn and downsell ) / revenue of 12 month prior } 
@@ -278,8 +286,8 @@ def calculate_metrics (df):
     temp_metrics_df.reset_index(inplace=True)
     temp_metrics_df.rename(columns={'index': 'measureType'}, inplace=True)
 
-    print (temp_metrics_df)
     return temp_metrics_df
+
 
 def calculate_trailing_metrics(df, trailing_period, newMeasureType): 
     """
@@ -299,6 +307,7 @@ def calculate_trailing_metrics(df, trailing_period, newMeasureType):
 
     return df_transposed[df_transposed['measureType']==newMeasureType]
 
+
 def calculate_previous_period_values(df, trailing_period, measureType, newMeasureType): 
     """
     calculates the trailing cummulative sum of a metrics for a given period 
@@ -317,6 +326,7 @@ def calculate_previous_period_values(df, trailing_period, measureType, newMeasur
 
     return  df_transposed[df_transposed['measureType']==newMeasureType]
 
+
 def calculate_logo_count_waterfall (df):
     """
     calculates the logo waterfall metrics 
@@ -325,9 +335,52 @@ def calculate_logo_count_waterfall (df):
         Churn Customers Count
         Ending Customers Count 
     """
-    # @todo 
 
-    return df
+
+    # filter out upsell and downsell records 
+
+    # categorical value are cached and gives erratic behavior 
+    df['measureType'] = df['measureType'].astype(str)
+    filtered_df = df[df['measureType'].isin(['monthlyRevenue', 'newBusiness', 'churn'])]
+
+    # Melt the DataFrame to have a single 'value' column for months
+    melted_df = pd.melt(filtered_df, id_vars=['customerId', 'customerName', 'measureType'], var_name='month', value_name='value')
+    melted_df['value'].fillna(0, inplace=True)
+
+    # Filter rows with non-zero values
+    non_zero_df = melted_df[melted_df['value'] != 0]
+    
+    # Group by month, measureType, and count distinct customers
+    result_df = non_zero_df.groupby(['month', 'measureType'])['customerId'].nunique().reset_index()
+
+    # Pivot the result to have measureType as columns and month as index
+    final_df = result_df.pivot_table(index='measureType', columns='month', values='customerId', aggfunc='sum', fill_value=0)
+
+    # Reset the index and remove the 'month' index name
+    final_df.reset_index(inplace=True)
+    final_df.columns.name = None
+
+    # Change the values in the measureType columns to include a suffix  "Logo" without using a for loop
+    final_df['measureType'] = final_df['measureType'].apply(lambda x: f'{x}Logo')
+
+    # CCopy the monthly revenue to waterfall final_df 
+    logo_wf_df = final_df[final_df['measureType']=='monthlyRevenueLogo'].copy()
+    
+    # Shift the columns of the original final_df - by one colmn- and add it  to waterfall final_df - so that it now captures last month's revenue
+    logo_wf_df.iloc[0, 2:] = logo_wf_df.iloc[0, 1:-1].values
+    logo_wf_df['measureType'] = 'lastMonthRevenueLogo'
+
+    # concat the lastMonthrevenue to the final_df
+    logo_wf_df = pd.concat([logo_wf_df, final_df], ignore_index=True)
+
+    # Define the sorting order for 'measureType'
+    sorting_order = ['lastMonthRevenueLogo', 'newBusinessLogo',  'churnLogo', 'monthlyRevenueLogo']
+
+    # Sort the DataFrame based on 'measureType' using the defined order and 'customerId'
+    logo_wf_df['measureType'] = pd.Categorical(logo_wf_df['measureType'], categories=sorting_order, ordered=True)
+    logo_wf_df = logo_wf_df.sort_values(['measureType'])
+
+    return logo_wf_df
 
 
 def create_waterfall(df): 
@@ -350,11 +403,8 @@ def create_waterfall(df):
     # CCopy the monthly revenue to waterfall df 
     waterfall_df = df[df['measureType']=='monthlyRevenue'].copy()
 
-    print(waterfall_df)
     # Shift the columns of the original df - by one colmn- and add it  to waterfall df - so that it now captures last month's revenue
     waterfall_df.iloc[0, 2:] = df.iloc[0, 1:-1].values
-
-    print(waterfall_df)
 
     waterfall_df['measureType'] = waterfall_df['measureType'].cat.add_categories(['lastMonthRevenue'])
 
@@ -424,6 +474,7 @@ def annualize_agg_arr(df):
 
     return annualized_df
 
+
 def rename_columns(df):
     """
     Converts the name of the ARR metrcis to meaningful display values
@@ -438,6 +489,7 @@ def rename_columns(df):
     df['measureType'] = df['measureType'].replace(ARR_DISPLAY_COLUMN_MAP)
 
     return df
+
 
 def stylize_metrics_df(df):
     """
@@ -476,17 +528,9 @@ def stylize_metrics_df(df):
 
     stylized_df.set_index(['measureType'], inplace=True)
 
-
-    # insert blank rows at 6th place - and provide a dummy index value of one space
-    #stylized_df = insert_blank_row(stylized_df, 6, ' ')
-
-
-    print(stylized_df)
-
     stylized_df=decorate_agg_metrics(stylized_df)
 
     return stylized_df
-
 
 
 def reconcile_overrides(original_df, override_df ):
@@ -533,6 +577,7 @@ def reconcile_overrides(original_df, override_df ):
 
     return transposed_result_df
 
+
 def highlight_positive_negative_cells(df):
     """
     Apply Pandas dataframe styles - 
@@ -561,11 +606,6 @@ def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, te
     else:
         return ''
     
-
-
-
-# Assuming DF_POSITIVE_HIGHLIGHT_BG_COLOR, DF_NEGATIVE_HIGHLIGHT_BG_COLOR, 
-# DF_HIGHLIGHT_TEXT_COLOR, and DF_HIGHLIGHT_TEXT_WEIGHT are defined elsewhere.
     
 def insert_blank_row(df, row_index, index_value, fill_value): 
     """

@@ -21,5 +21,10 @@ ARR_DISPLAY_COLUMN_MAP = {
         "monthlyRevenue" : "Closing Period ARR", 
         "grossRenewalRate" : "Gross Renewal Rate", 
         "netRetentionRate": "Net Retention Rate", 
-        "yearlyRevenueGrowth" : "Yearly Revenue Growth Rate"
+        "yearlyRevenueGrowth" : "Yearly Revenue Growth Rate",
+        "lastMonthRevenueLogo" : "Opening Period Customers",
+        "newBusinessLogo" : "New Customers",
+        "churnLogo" : "Churned Customer",
+        "monthlyRevenueLogo": "Closing Period Customers"
+
 }

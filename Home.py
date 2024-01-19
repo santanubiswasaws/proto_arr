@@ -8,7 +8,7 @@ from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
 from arr_lib.arr_analysis import reconcile_overrides
 from arr_lib.arr_analysis import highlight_positive_negative_cells
 from arr_lib.arr_analysis import apply_overrides
-from arr_lib.arr_analysis import stylize_metrics_df
+from arr_lib.arr_analysis import stylize_metrics_df, rename_columns
 from arr_lib.column_mapping_ui import perform_column_mapping
 from arr_lib.styling import BUTTON_STYLE
 from arr_lib.styling import MARKDOWN_STYLES
@@ -91,6 +91,8 @@ def main():
         # Initialize customer and aggregate level dfs 
         if 'customer_arr_df' not in st.session_state:
                 st.session_state.customer_arr_df = pd.DataFrame(columns=['customerId', 'measureType'])
+        if 'logo_metrics_df' not in st.session_state:
+                st.session_state.logo_metrics_df = pd.DataFrame(columns=['customerId', 'measureType'])
         if 'metrics_df' not in st.session_state:
                 st.session_state.metrics_df = pd.DataFrame(columns=['customerId', 'measureType'])
 
@@ -109,9 +111,10 @@ def main():
 
                     # Step 2: Create transposed matrix with arr details and aggregated arr metrics
                     # -------                    
-                    customer_arr_df, metrics_df = create_arr_metrics(monthly_bucket_df)
+                    customer_arr_df, logo_metrics_df, metrics_df = create_arr_metrics(monthly_bucket_df)
          
                     st.session_state.customer_arr_df = customer_arr_df
+                    st.session_state.logo_metrics_df = logo_metrics_df
                     st.session_state.metrics_df = metrics_df
 
             except ValueError as e:
@@ -124,13 +127,22 @@ def main():
             
             # Display customer level detailes 
             with st.expander('Show/Hide customer level Monthly Revenue (MRR) details', expanded = True):
-
                 st.subheader('Customer Level MRR Metrics :', divider='green') 
-
-                # set inde to customerId, measureType - for freeze pane functionality
+                # set index to customerId, measureType - for freeze pane functionality
                 display_customer_arr_df = st.session_state.customer_arr_df.round(2)
                 display_customer_arr_df.set_index(['customerName'], inplace=True)
                 st.dataframe(display_customer_arr_df, use_container_width=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # Display customer level detailes 
+            with st.expander('Show/Hide Customer Count analysis', expanded = True):
+                st.subheader('Customer Count analysis :', divider='green') 
+                # set inde to measureType
+                display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0))
+                display_logo_metrics_df.set_index(['measureType'], inplace=True)
+                st.dataframe(display_logo_metrics_df, use_container_width=True)
+
 
             st.subheader('Aggregated ARR Metrics :', divider='green') 
 
@@ -278,6 +290,9 @@ def main():
         if 'replan_customer_arr_df' not in st.session_state:
                 st.session_state.replan_customer_arr_df= pd.DataFrame(columns=['customerId', 'measureType'])
 
+        if 'replan_logo_waterfall_df' not in st.session_state:
+                st.session_state.replan_logo_waterfall_df= pd.DataFrame(columns=['customerId', 'measureType'])
+
         if 'replan_metrics_df' not in st.session_state:
                 st.session_state.replan_metrics_df = pd.DataFrame(columns=['customerId', 'measureType'])
 
@@ -297,10 +312,12 @@ def main():
                 with st.spinner("Replanning ARR Metrics"):
                     
                     # Call the method to create the metrics df
-                    call_edited_df = st.session_state.edited_df                   
-                    replan_customer_arr_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
+                    call_edited_df = st.session_state.edited_df     
+         
+                    replan_customer_arr_df, replan_logo_waterfall_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
 
                     st.session_state.replan_customer_arr_df = replan_customer_arr_df
+                    st.session_state.replan_logo_waterfall_df = replan_logo_waterfall_df
                     st.session_state.replan_metrics_df = replan_metrics_df
                     
             except ValueError as e:
@@ -312,13 +329,23 @@ def main():
 
             with st.expander('Show/Hide customer level replan details', expanded = True):
                 st.subheader('Replanned Customer Level Monthly Revenue (MRR) Metrics :', divider='green') 
-
                 # set inde to customerId, measureType - for freeze pane functionality
                 display_replan_customer_arr_df = st.session_state.replan_customer_arr_df.round(2)
-
                 # drop measureType column 
                 display_replan_customer_arr_df.set_index(['customerName'], inplace=True)
                 st.dataframe(display_replan_customer_arr_df, use_container_width=True)
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            # Display customer count level detailes 
+            with st.expander('Show/Hide Customer Count replan analysis', expanded = True):
+                st.subheader('Customer Count replan analysis :', divider='green') 
+                # set inde to customerId, measureType - for freeze pane functionality
+                display_replan_logo_waterfall_df = rename_columns(st.session_state.replan_logo_waterfall_df.round(0))
+                # drop measureType column 
+                display_replan_logo_waterfall_df.set_index(['measureType'], inplace=True)
+                st.dataframe(display_replan_logo_waterfall_df, use_container_width=True)
+
+
 
             st.subheader('Replanned Aggregated ARR Metrics :', divider='green') 
 
