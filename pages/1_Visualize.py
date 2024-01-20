@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
+from arr_lib.styling import BUTTON_STYLE
+from arr_lib.styling import MARKDOWN_STYLES
+from arr_lib.styling import GLOBAL_STYLING
+
+st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
+st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
+st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
+
 
 if 'metrics_df' not in st.session_state: 
     metrics_df = pd.DataFrame()
