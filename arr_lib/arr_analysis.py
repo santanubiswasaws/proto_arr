@@ -540,7 +540,56 @@ def stylize_metrics_df(df):
     return stylized_df
 
 
-def reconcile_overrides(original_df, override_df ):
+def reconcile_overrides(original_df, override_df):
+    """
+    Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
+
+    Parameters:
+    - original_df (pd.DataFrame): Original DataFrame
+    - override_df (pd.DataFrame): Override DataFrame
+
+    Returns:
+    - pd.DataFrame: DataFrame with differences between the two input DataFrames, truncated to the columns of override_df
+    """
+
+    # Replace NaN values with zeros in both DataFrames
+    original_df.fillna(0, inplace=True)
+    override_df.fillna(0, inplace=True)
+
+    # Melt the DataFrames to convert months into rows
+    melted_df_original = pd.melt(original_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_original')
+    melted_df_override = pd.melt(override_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_override')
+
+    # Merge the melted DataFrames on 'customerId', 'customerName', and 'month'
+    merged_df = melted_df_original.merge(melted_df_override, on=['customerId', 'customerName', 'month'], how='outer')
+
+    # Calculate the differences for each row using vectorized operations
+    merged_df['difference'] =  merged_df['value_override'].fillna(0) - merged_df['value_original'].fillna(0)
+
+    # Create a new DataFrame containing 'customerId', 'customerName', 'month', and 'difference'
+    result_df = merged_df[['customerId', 'customerName', 'month', 'difference']]
+
+    # Sort the result DataFrame by 'customerId' and 'month'
+    result_df.sort_values(by=['customerId', 'month'], inplace=True)
+
+    # Transpose the result DataFrame to make months become columns
+    transposed_result_df = result_df.pivot_table(index=['customerId', 'customerName'], columns='month', values='difference', fill_value=0).reset_index()
+
+    # Remove the month as index
+    transposed_result_df.columns.name = None  # Remove the 'month' label
+
+    # Truncate the resulting DataFrame to the columns of override_df
+    truncated_df = transposed_result_df[override_df.columns]
+
+    # Drop rows where all columns except 'customerId' and 'customerName' have a value of 0
+    truncated_df = truncated_df[(truncated_df.drop(['customerId', 'customerName'], axis=1) != 0).any(axis=1)]
+
+
+    return truncated_df
+
+
+
+def reconcile_overrides_2(original_df, override_df ):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
 
