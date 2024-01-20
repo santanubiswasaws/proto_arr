@@ -53,7 +53,9 @@ def main():
         st.markdown("<br>", unsafe_allow_html=True)
 
 
+        # -------------------------------------------------------------------------------
         # Step 1: Column Mapping Section 
+        # -------------------------------------------------------------------------------
 
         # initialize mapped_df
         if 'mapped_df' not in st.session_state:
@@ -69,8 +71,12 @@ def main():
             st.session_state.mapped_df =  mapped_df
 
         mapped_df = st.session_state.mapped_df
-        
+
+
+        # -------------------------------------------------------------------------------        
         # Step 2: Display mapped uploaded data 
+        # -------------------------------------------------------------------------------
+
         if (not mapped_df.empty) and st.session_state.column_mapping_status:
 
             # Display mapped data 
@@ -103,14 +109,14 @@ def main():
             try:
                 with st.spinner("Generating ARR  Analytics ..."):
 
-                    # Step 1: Generate monthly buckets
-                    # -------
+                    # Step 2a: Generate monthly buckets
+                    # ----------------------------------
                     mapped_df = st.session_state.mapped_df
                     monthly_bucket_df = create_monthly_buckets(mapped_df)                    
                     st.session_state.monthly_bucket_df = monthly_bucket_df
 
-                    # Step 2: Create transposed matrix with arr details and aggregated arr metrics
-                    # -------                    
+                    # Step 2b: Create transposed matrix with arr details and aggregated arr metrics
+                    #---------------------------------------------------------------------------------                   
                     customer_arr_df, logo_metrics_df, metrics_df = create_arr_metrics(monthly_bucket_df)
          
                     st.session_state.customer_arr_df = customer_arr_df
@@ -120,14 +126,17 @@ def main():
             except ValueError as e:
                 st.error(f"Error: {str(e)}")
 
+
+        # -------------------------------------------------------------------------------                
         # Step 3: Display transposed customer level and aggregated metrics
-        # -------
+        # -------------------------------------------------------------------------------   
+                
         metrics_df = st.session_state.metrics_df
         if (not metrics_df.empty) and st.session_state.column_mapping_status:
             
             # Display customer level detailes 
-            with st.expander('Show/Hide customer level Monthly Revenue (MRR) details', expanded = True):
-                st.subheader('Customer Level MRR Metrics :', divider='green') 
+            with st.expander('Show/Hide MRR by Customer', expanded = True):
+                st.subheader('MRR by Customer :', divider='green') 
                 # set index to customerId, measureType - for freeze pane functionality
                 display_customer_arr_df = st.session_state.customer_arr_df.round(2)
                 display_customer_arr_df.set_index(['customerName'], inplace=True)
@@ -136,8 +145,8 @@ def main():
             st.markdown("<br>", unsafe_allow_html=True)
 
             # Display customer count detailes 
-            with st.expander('Show/Hide Customer Count analysis', expanded = True):
-                st.subheader('Customer Count analysis :', divider='green') 
+            with st.expander('Show/Hide Customer Count', expanded = True):
+                st.subheader('Customer Count :', divider='green') 
                 # set inde to measureType
                 display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0))
                 display_logo_metrics_df.set_index(['measureType'], inplace=True)
@@ -146,7 +155,7 @@ def main():
                 st.dataframe(display_logo_metrics_df, use_container_width=True)
 
 
-            st.subheader('Aggregated ARR Metrics :', divider='green') 
+            st.subheader('ARR Walk (by Type) :', divider='green') 
 
 
             # Stylize aggregated metrics DF
@@ -157,7 +166,9 @@ def main():
         st.markdown("<br><br>", unsafe_allow_html=True)
 
 
+        # -------------------------------------------------------------------------------
         # Step 4a: Override section 
+        # -------------------------------------------------------------------------------
 
         if 'uploaded_override_file' not in st.session_state:
             st.session_state.uploaded_override_file = None
@@ -169,8 +180,8 @@ def main():
             st.session_state.recon_df = pd.DataFrame()
 
         if (not metrics_df.empty) and st.session_state.column_mapping_status: 
-            st.subheader('Override customer revenue details  :', divider='green') 
-            uploaded_override_file = st.file_uploader("Upload an override file - it must contain customerId and customerName columns", type=["csv"])   
+            st.subheader('Import Historical MRR data (optional)  :', divider='green') 
+            uploaded_override_file = st.file_uploader("Upload historical MRR data - it must contain CustomerID and CustomerName Columns",type=["csv"])   
             st.session_state.uploaded_override_file = uploaded_override_file
 
         uploaded_override_file = st.session_state.uploaded_override_file
@@ -181,8 +192,8 @@ def main():
         override_df =  st.session_state.override_df 
         if (not override_df.empty):    
             try:
-                with st.expander('Show/Hide uploaded override files', expanded = True):
-                    st.subheader('Uploaded override details :', divider='green')     
+                with st.expander('Show/Hide uploaded historical details', expanded = True):
+                    st.subheader('Uploaded historical details :', divider='green')     
                     display_override_df = override_df.round(2)
                     display_override_df.set_index(['customerName'], inplace=True)
                     st.dataframe(display_override_df)
@@ -193,8 +204,8 @@ def main():
             try: 
                 recon_df = reconcile_overrides(st.session_state.customer_arr_df, st.session_state.override_df)
                 st.session_state.recon_df = recon_df
-                with st.expander('Show/Hide rconciliation between override and generated MRR details', expanded = True):
-                    st.subheader('Reconciliation between override and generated MRR details :', divider='green')  
+                with st.expander('Show/Hide MRR reconciliation between imported and historical data', expanded = True):
+                    st.subheader('MRR reconciliation between imported and historical data :', divider='green')  
                     display_recon_df = recon_df.round(0)   
                     display_recon_df.set_index(['customerName', 'customerId'], inplace=True)  
                     display_recon_df = highlight_positive_negative_cells(display_recon_df)   
@@ -204,8 +215,9 @@ def main():
                 st.error(f"Error: {e}") 
 
 
+        # -------------------------------------------------------------------------------
         # 4b. Display options for applying override
-
+        # -------------------------------------------------------------------------------
 
         if 'apply_override' not in st.session_state:
             st.session_state.apply_override = None 
@@ -214,10 +226,11 @@ def main():
             st.session_state.apply_override = st.checkbox('Apply Override')
 
 
+        # -------------------------------------------------------------------------------
         # Step 5: Generate Scratchpad 
-        # -----
+        # -------------------------------------------------------------------------------
                 
-        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)
 
         if 'planning_df' not in st.session_state:
                 st.session_state.planning_df = pd.DataFrame(columns=['customerId', 'measureType'])
@@ -233,7 +246,7 @@ def main():
         metrics_df = st.session_state.metrics_df
 
         if st.session_state.column_mapping_status and (not metrics_df.empty): 
-             st.session_state.create_reset_planning_sheet_button_clicked = st.button("Create or Reset Planing Scratchpad", type="primary")
+             st.session_state.create_reset_planning_sheet_button_clicked = st.button("Edit MRR by Customer data", type="primary")
 
         if st.session_state.create_reset_planning_sheet_button_clicked and st.session_state.column_mapping_status:       
             st.session_state["random_key"] += 1   
@@ -261,12 +274,14 @@ def main():
 
         planning_df = st.session_state.planning_df
         if (not planning_df.empty) and st.session_state.column_mapping_status: 
+
             # Display planning scratchpad        
-            st.subheader('Planning scratchpad :', divider='green') 
+            # st.subheader('Planning scratchpad :', divider='green') 
+ 
             try:
 
-                st.markdown(f"<br><p class='md_big'>You can directly edit values in scratchpad or use csv/excel copy/paste to modify data</p>", unsafe_allow_html=True)
-                # set inde to customerId - for freeze pane functionality
+                st.markdown(f"<br><p class='md_big'>Edit MRR data if needed (directly in the table below or use csv/excel and copy/paste)</p>", unsafe_allow_html=True)
+                # set index to customerName - for freeze pane functionality
                 display_planning_df = st.session_state.planning_df.round(2)
                 display_planning_df.set_index(['customerName'], inplace=True)
                 # edited_df = st.data_editor(display_planning_df, key=st.session_state["random_key"], disabled=('customerId', 'measureType'), num_rows='dynamic', hide_index=False, use_container_width=True)
@@ -280,14 +295,11 @@ def main():
         st.markdown("<br>", unsafe_allow_html=True)
 
 
-
-                                 
-
-        # Step 6: Replanning ARR section 
-        # ------
+        # -------------------------------------------------------------------------------                                 
+        # Step 6: Generate replanned ARR metrics 
+        # -------------------------------------------------------------------------------
             
-
-        st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
         if 'replan_customer_arr_df' not in st.session_state:
                 st.session_state.replan_customer_arr_df= pd.DataFrame(columns=['customerId', 'measureType'])
@@ -307,7 +319,7 @@ def main():
         # Add a button to calculate monthly contract values
         call_edited_df = st.session_state.edited_df 
         if (not call_edited_df.empty) and st.session_state.column_mapping_status: 
-             st.session_state.replan_arr_metrics_button_clicked = st.button("Regenerate ARR Plan", type="primary")
+             st.session_state.replan_arr_metrics_button_clicked = st.button("View Final MRR by Customer and Customer/ARR Metrics", type="primary")
 
         if st.session_state.replan_arr_metrics_button_clicked and st.session_state.column_mapping_status:        
             try:
@@ -325,32 +337,36 @@ def main():
             except ValueError as e:
                 st.error(f"Error: {str(e)}")
 
+
+        # -------------------------------------------------------------------------------                                 
+        # Step 6b: Dispay replanned ARR 
+        # -------------------------------------------------------------------------------
+
         replan_metrics_df = st.session_state.replan_metrics_df 
         if (not replan_metrics_df.empty) and st.session_state.column_mapping_status:  
             # Display customer level detailes 
 
-            with st.expander('Show/Hide customer level replan details', expanded = True):
-                st.subheader('Replanned Customer Level Monthly Revenue (MRR) Metrics :', divider='green') 
-                # set inde to customerId, measureType - for freeze pane functionality
+            with st.expander('Show/Hide MRR by Customer', expanded = True):
+                st.subheader('MRR by Customer :', divider='green') 
+ 
                 display_replan_customer_arr_df = st.session_state.replan_customer_arr_df.round(2)
-                # drop measureType column 
+
+                # set inde to customerName  - for freeze pane functionality
                 display_replan_customer_arr_df.set_index(['customerName'], inplace=True)
                 st.dataframe(display_replan_customer_arr_df, use_container_width=True)
 
             st.markdown("<br>", unsafe_allow_html=True)
             # Display customer count level detailes 
-            with st.expander('Show/Hide Customer Count replan analysis', expanded = True):
-                st.subheader('Customer Count replan analysis :', divider='green') 
-                # set inde to customerId, measureType - for freeze pane functionality
+            with st.expander('Show/Hide Customer Count', expanded = True):
+                st.subheader('Customer Count :', divider='green') 
+
                 display_replan_logo_waterfall_df = rename_columns(st.session_state.replan_logo_waterfall_df.round(0))
                 display_replan_logo_waterfall_df.set_index(['measureType'], inplace=True)
 
                 display_replan_logo_waterfall_df = decorate_logo_metrics_df(display_replan_logo_waterfall_df)
                 st.dataframe(display_replan_logo_waterfall_df, use_container_width=True)
 
-
-
-            st.subheader('Replanned Aggregated ARR Metrics :', divider='green') 
+            st.subheader('ARR Walk (by Type) :', divider='green') 
 
             # set inde to customerId, measureType - for freeze pane functionality
             display_replan_metrics_df = stylize_metrics_df(st.session_state.replan_metrics_df)

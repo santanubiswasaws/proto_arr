@@ -699,7 +699,7 @@ def decorate_agg_metrics(df):
     """
 
     # insert a blank row after aggregated ARR metrics 
-    df = insert_blank_row(df, 6, '---------------------------------', '--------')
+    df = insert_blank_row(df, 6, '-------------------------------------------------', '--------')
 
     neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
     curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
