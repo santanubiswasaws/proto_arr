@@ -350,11 +350,14 @@ def calculate_logo_count_waterfall (df):
 
     # Filter rows with non-zero values
     non_zero_df = melted_df[melted_df['value'] != 0]
-    
-    # Group by month, measureType, and count distinct customers
-    result_df = non_zero_df.groupby(['month', 'measureType'])['customerId'].nunique().reset_index()
 
-    # Pivot the result to have measureType as columns and month as index
+    # Group by month, measureType, and count distinct customers
+    result_df = non_zero_df.groupby(['month', 'measureType'])['customerId'].count().reset_index()
+
+    # turn values in the 'churn' row to negative - the column where the ount is stored is customerId - because of group by 
+    result_df.loc[result_df['measureType'] == 'churn', 'customerId'] *= -1
+
+    # Pivot the result to have months as columns and measuretype as index
     final_df = result_df.pivot_table(index='measureType', columns='month', values='customerId', aggfunc='sum', fill_value=0)
 
     # Reset the index and remove the 'month' index name
@@ -364,12 +367,13 @@ def calculate_logo_count_waterfall (df):
     # Change the values in the measureType columns to include a suffix  "Logo" without using a for loop
     final_df['measureType'] = final_df['measureType'].apply(lambda x: f'{x}Logo')
 
-    # CCopy the monthly revenue to waterfall final_df 
+    # Copy the monthly revenue to waterfall final_df 
     logo_wf_df = final_df[final_df['measureType']=='monthlyRevenueLogo'].copy()
-    
+
     # Shift the columns of the original final_df - by one colmn- and add it  to waterfall final_df - so that it now captures last month's revenue
     logo_wf_df.iloc[0, 2:] = logo_wf_df.iloc[0, 1:-1].values
     logo_wf_df['measureType'] = 'lastMonthRevenueLogo'
+
 
     # concat the lastMonthrevenue to the final_df
     logo_wf_df = pd.concat([logo_wf_df, final_df], ignore_index=True)
@@ -380,6 +384,7 @@ def calculate_logo_count_waterfall (df):
     # Sort the DataFrame based on 'measureType' using the defined order and 'customerId'
     logo_wf_df['measureType'] = pd.Categorical(logo_wf_df['measureType'], categories=sorting_order, ordered=True)
     logo_wf_df = logo_wf_df.sort_values(['measureType'])
+
 
     return logo_wf_df
 
