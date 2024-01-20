@@ -6,7 +6,7 @@ from arr_lib.arr_analysis import create_monthly_buckets
 from arr_lib.arr_analysis import create_arr_metrics
 from arr_lib.arr_analysis import create_customer_and_aggregated_metrics
 from arr_lib.arr_analysis import reconcile_overrides
-from arr_lib.arr_analysis import highlight_positive_negative_cells
+from arr_lib.arr_analysis import highlight_positive_negative_cells, decorate_logo_metrics_df
 from arr_lib.arr_analysis import apply_overrides
 from arr_lib.arr_analysis import stylize_metrics_df, rename_columns
 from arr_lib.column_mapping_ui import perform_column_mapping
@@ -135,12 +135,14 @@ def main():
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Display customer level detailes 
+            # Display customer count detailes 
             with st.expander('Show/Hide Customer Count analysis', expanded = True):
                 st.subheader('Customer Count analysis :', divider='green') 
                 # set inde to measureType
                 display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0))
                 display_logo_metrics_df.set_index(['measureType'], inplace=True)
+
+                display_logo_metrics_df = decorate_logo_metrics_df(display_logo_metrics_df)
                 st.dataframe(display_logo_metrics_df, use_container_width=True)
 
 
@@ -341,8 +343,9 @@ def main():
                 st.subheader('Customer Count replan analysis :', divider='green') 
                 # set inde to customerId, measureType - for freeze pane functionality
                 display_replan_logo_waterfall_df = rename_columns(st.session_state.replan_logo_waterfall_df.round(0))
-                # drop measureType column 
                 display_replan_logo_waterfall_df.set_index(['measureType'], inplace=True)
+
+                display_replan_logo_waterfall_df = decorate_logo_metrics_df(display_replan_logo_waterfall_df)
                 st.dataframe(display_replan_logo_waterfall_df, use_container_width=True)
 
 

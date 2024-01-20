@@ -693,6 +693,58 @@ def decorate_agg_metrics(df):
     return styled_df
 
 
+
+def decorate_logo_metrics_df(df):
+    """
+    Apply Pandas dataframe styles to the aggregated metrics df 
+    currently the following decorations are implemented 
+
+    1. Highlight negatives values in color red 
+    2. Highlight the opening anfd closing period ARR is shades of green 
+    
+    Note: Streamlit has does not render all the pandas styling 
+    """
+
+    neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+    curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
+    prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
+    text_color = DF_HIGHLIGHT_TEXT_COLOR
+    text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+
+    # Function to apply styling to each cell
+    def style_cell(val):
+        # Check for None, empty string, spaces, or strings starting with '--'
+        if val is None or val == '' or str(val).isspace() or str(val).startswith('--'):
+            return ''
+        try:
+            val_num = float(str(val).replace(",", "").replace("%", ""))
+            if val_num < 0:
+                return f'color: {neg_bg}; font-weight: {text_weight}'
+            else:
+                return ''
+        except ValueError:
+            return ''
+
+    # Function to apply styling to each row
+    def style_row(row):
+        if row.name == 'Opening Period Customers':
+            return [f'background-color: {prev_period_bg}'] * len(row)
+        elif row.name == 'Closing Period Customers':
+            return [f'background-color: {curr_period_bg}'] * len(row)
+        else:
+            return [''] * len(row)
+
+    # Apply styling to each cell
+    styled_df = df.style.apply(lambda x: x.map(style_cell), axis=None)
+
+    # Apply styling to each row
+    styled_df = styled_df.apply(style_row, axis=1)
+
+    # Set text alignment
+    styled_df = styled_df.set_properties(**{'text-align': 'right'}) # does not work with current Streamlit version
+
+    return styled_df
+
 def apply_overrides(original_df, override_df ):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
