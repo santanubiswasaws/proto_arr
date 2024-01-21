@@ -7,6 +7,8 @@ from arr_lib.styling import DF_NEGATIVE_HIGHLIGHT_BG_COLOR, DF_POSITIVE_HIGHLIGH
 from arr_lib.styling import DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD, DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
 
 # implemented with presetting the number of months
+
+@st.cache_data
 def create_monthly_buckets(df):
     """
         Process uploaded contract data 
@@ -62,6 +64,7 @@ def create_monthly_buckets(df):
     return second_df
 
 
+@st.cache_data
 def create_arr_metrics(df):
     """
     Process df containing monthly rr values for each customer and generates aggregated value.
@@ -81,7 +84,7 @@ def create_arr_metrics(df):
     return customer_arr_df, logo_waterfall_df, metrics_df
 
 
-
+@st.cache_data
 def create_transposed_monthly_revenue_matrix (df): 
     """
     Process df containing monthly rr values for each customer and creates a transposed dataframe
@@ -112,6 +115,7 @@ def create_transposed_monthly_revenue_matrix (df):
     return transposed_df
 
 
+@st.cache_data
 def create_customer_and_aggregated_metrics(df):
     """
     Process df containing transposed monthly metrics for each customer with aggregated monthly revenue, and calculates the following metrics
@@ -231,6 +235,7 @@ def create_customer_and_aggregated_metrics(df):
     return df_rr, df_logo_waterfall, df_agg
 
 
+@st.cache_data
 def create_aggregated_arr_metrics(df):
     """
     Process df containing transposed monthly metrics for each customer, aggregates the values for all customers and returns the aggregated df
@@ -248,7 +253,7 @@ def create_aggregated_arr_metrics(df):
 
     return aggregated_df
 
-
+@st.cache_data
 def calculate_retention_metrics (df):
     """
     calculates the following metrics 
@@ -289,7 +294,7 @@ def calculate_retention_metrics (df):
 
     return temp_metrics_df
 
-
+@st.cache_data
 def calculate_trailing_metrics(df, trailing_period, newMeasureType): 
     """
     calculates the trailing cummulative sum of a metrics for a given period 
@@ -309,6 +314,7 @@ def calculate_trailing_metrics(df, trailing_period, newMeasureType):
     return df_transposed[df_transposed['measureType']==newMeasureType]
 
 
+@st.cache_data
 def calculate_previous_period_values(df, trailing_period, measureType, newMeasureType): 
     """
     calculates the trailing cummulative sum of a metrics for a given period 
@@ -328,6 +334,7 @@ def calculate_previous_period_values(df, trailing_period, measureType, newMeasur
     return  df_transposed[df_transposed['measureType']==newMeasureType]
 
 
+@st.cache_data
 def calculate_logo_count_waterfall (df):
     """
     calculates the logo waterfall metrics 
@@ -389,6 +396,7 @@ def calculate_logo_count_waterfall (df):
     return logo_wf_df
 
 
+@st.cache_data
 def create_waterfall(df): 
     """
     Process df containing monthly rr metrics, and add the previous months revenue as the opening balance and then reorders the rows as
@@ -430,6 +438,7 @@ def create_waterfall(df):
     return waterfall_df
 
 
+@st.cache_data
 def sort_by_first_month_of_sales(df): 
     """
     Sort the df containing monthwise customer revenue grid, in the order of first month of sale
@@ -461,6 +470,7 @@ def sort_by_first_month_of_sales(df):
     return sorted_df
 
 
+@st.cache_data
 def annualize_agg_arr(df): 
     """
     Converts MRR to ARR 
@@ -482,6 +492,7 @@ def annualize_agg_arr(df):
     return annualized_df
 
 
+@st.cache_data
 def rename_columns(df):
     """
     Converts the name of the ARR metrcis to meaningful display values
@@ -540,6 +551,7 @@ def stylize_metrics_df(df):
     return stylized_df
 
 
+@st.cache_data
 def reconcile_overrides(original_df, override_df):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
@@ -588,52 +600,6 @@ def reconcile_overrides(original_df, override_df):
     return truncated_df
 
 
-
-def reconcile_overrides_2(original_df, override_df ):
-    """
-    Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
-
-    Parameters:
-    - scratch_pad_df (pd.DataFrame): scratch pad df 
-    - override_df  (pd.DataFrame): override df 
-
-    Returns:
-    - pd.DataFrame: for each customer as row and months as columns, it creates the differnce between the tow input dfs 
-    """
-
-    # Replace NaN values with zeros in both DataFrames
-    original_df.fillna(0, inplace=True)
-    override_df.fillna(0, inplace=True)
-
-
-    # Melt the DataFrames to convert months into rows
-    melted_df_original = pd.melt(original_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_original')
-    melted_df_override = pd.melt(override_df, id_vars=['customerId', 'customerName'], var_name='month', value_name='value_override')
-
-    # Merge the melted DataFrames on 'customerId', 'customerName', and 'month'
-    merged_df = melted_df_original.merge(melted_df_override, on=['customerId', 'customerName', 'month'], how='outer')
-
-    # Calculate the differences for each row using vectorized operations
-    merged_df['difference'] =  merged_df['value_override'].fillna(0) - merged_df['value_original'].fillna(0)
-
-    # Create a new DataFrame containing 'customerId', 'customerName', 'month', and 'difference'
-    result_df = merged_df[['customerId', 'customerName', 'month', 'difference']]
-
-    # Sort the result DataFrame by 'customerId' and 'month'
-    result_df.sort_values(by=['customerId', 'month'], inplace=True)
-
-    # Transpose the result DataFrame to make months become columns
-    transposed_result_df = result_df.pivot_table(index=['customerId', 'customerName'], columns='month', values='difference', fill_value=0).reset_index()
-
-    # Remove the month as index 
-    transposed_result_df.columns.name = None  # Remove the 'month' label
-
-    # Drop rows where all columns except 'customerId' and 'customerName' have a value of 0
-    transposed_result_df = transposed_result_df[(transposed_result_df.drop(['customerId', 'customerName'], axis=1) != 0).any(axis=1)]
-
-    return transposed_result_df
-
-
 def highlight_positive_negative_cells(df):
     """
     Apply Pandas dataframe styles - 
@@ -650,6 +616,7 @@ def highlight_positive_negative_cells(df):
     return styled_df
 
 
+
 def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, text_color, text_weight ):
     """
     Takes a scalar and returns a string with the css property
@@ -662,7 +629,8 @@ def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, te
     else:
         return ''
     
-    
+
+@st.cache_data    
 def insert_blank_row(df, row_index, index_value, fill_value): 
     """
     Insert a blank row into a DataFrame at the specified row index, 
@@ -742,7 +710,6 @@ def decorate_agg_metrics(df):
     return styled_df
 
 
-
 def decorate_logo_metrics_df(df):
     """
     Apply Pandas dataframe styles to the aggregated metrics df 
@@ -794,6 +761,8 @@ def decorate_logo_metrics_df(df):
 
     return styled_df
 
+
+@st.cache_data
 def apply_overrides(original_df, override_df ):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month

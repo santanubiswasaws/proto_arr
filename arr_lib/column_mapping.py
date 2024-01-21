@@ -1,7 +1,9 @@
 import pandas as pd
+import streamlit as st 
 
 
 # returns a new dataframe with the column header names changed as per the column mapping performed by the user
+@st.cache_data
 def map_columns(df, column_mapping_df):
     """
     Map columns in the DataFrame according to the provided mapping.
