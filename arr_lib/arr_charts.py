@@ -249,12 +249,12 @@ def cust_arr_waterfall_chart(df,  chart_title):
 
     # Define a dictionary for translating category names
     translate_dict = {
-        "lastMonthRevenue" : "Opening Period ARR",
+        "lastMonthRevenue" : "Opening ARR",
         "newBusiness" : "New Business",
         "upSell" : "Expansion",
         "downSell" : "Contraction",
         "churn" : "Churn",
-        "monthlyRevenue" : "Closing Period ARR", 
+        "monthlyRevenue" : "MRR", 
     }
 
     # Define the color scheme as a dictionary
@@ -263,7 +263,7 @@ def cust_arr_waterfall_chart(df,  chart_title):
         "Expansion": 'green',
         "Contraction": 'magenta',
         "Churn": '#ee7777',
-        "Closing Period ARR": '#88b988'
+        "MRR": '#88b988'
     }
 
     # Apply the translation to the DataFrame
@@ -278,7 +278,7 @@ def cust_arr_waterfall_chart(df,  chart_title):
     ).properties(
         title=chart_title,
         width=1000,
-        height=650
+        height=600
     ).configure_title(
         fontSize=14,
         fontWeight='normal',
