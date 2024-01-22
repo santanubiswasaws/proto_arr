@@ -79,9 +79,9 @@ def create_arr_metrics(df):
     """
 
     transposed_df = create_transposed_monthly_revenue_matrix(df)
-    customer_arr_df, logo_waterfall_df, metrics_df = create_customer_and_aggregated_metrics(transposed_df)
+    cust_arr_waterfall_df, customer_arr_df, logo_waterfall_df, metrics_df = create_customer_and_aggregated_metrics(transposed_df)
 
-    return customer_arr_df, logo_waterfall_df, metrics_df
+    return cust_arr_waterfall_df, customer_arr_df, logo_waterfall_df, metrics_df
 
 
 @st.cache_data
@@ -206,6 +206,11 @@ def create_customer_and_aggregated_metrics(df):
     df['measureType'] = pd.Categorical(df['measureType'], categories=sorting_order, ordered=True)
     df = df.sort_values(['customerName','customerId', 'measureType'])
 
+
+    # dataframe with all measuretypes for a customer 
+    df_cust_arr_waterfall = df
+
+
     # select only the monthlyRevenue for csutomer level details 
     df_rr = df[df['measureType'] == 'monthlyRevenue']
 
@@ -232,7 +237,7 @@ def create_customer_and_aggregated_metrics(df):
 
     # print(df_logo_waterfall)
 
-    return df_rr, df_logo_waterfall, df_agg
+    return df_cust_arr_waterfall, df_rr, df_logo_waterfall, df_agg
 
 
 @st.cache_data

@@ -95,6 +95,9 @@ def main():
             st.session_state.generate_arr_metrics_button_clicked = False
 
         # Initialize customer and aggregate level dfs 
+            
+        if 'cust_arr_waterfall_df' not in st.session_state:
+                st.session_state.cust_arr_waterfall_df = pd.DataFrame(columns=['customerId', 'measureType'])            
         if 'customer_arr_df' not in st.session_state:
                 st.session_state.customer_arr_df = pd.DataFrame(columns=['customerId', 'measureType'])
         if 'logo_metrics_df' not in st.session_state:
@@ -117,8 +120,9 @@ def main():
 
                     # Step 2b: Create transposed matrix with arr details and aggregated arr metrics
                     #---------------------------------------------------------------------------------                   
-                    customer_arr_df, logo_metrics_df, metrics_df = create_arr_metrics(monthly_bucket_df)
-         
+                    cust_arr_waterfall_df, customer_arr_df, logo_metrics_df, metrics_df = create_arr_metrics(monthly_bucket_df)
+
+                    st.session_state.customer_arr_waterfall_df = cust_arr_waterfall_df         
                     st.session_state.customer_arr_df = customer_arr_df
                     st.session_state.logo_metrics_df = logo_metrics_df
                     st.session_state.metrics_df = metrics_df
@@ -302,6 +306,10 @@ def main():
             
         st.markdown("<br>", unsafe_allow_html=True)
 
+
+        if 'replan_customer_arr_waterfall_df' not in st.session_state:
+                st.session_state.replan_customer_arr_waterfall_df= pd.DataFrame(columns=['customerId', 'measureType'])
+
         if 'replan_customer_arr_df' not in st.session_state:
                 st.session_state.replan_customer_arr_df= pd.DataFrame(columns=['customerId', 'measureType'])
 
@@ -329,12 +337,13 @@ def main():
                     # Call the method to create the metrics df
                     call_edited_df = st.session_state.edited_df     
          
-                    replan_customer_arr_df, replan_logo_metrics_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
+                    replan_customer_arr_waterfall_df, replan_customer_arr_df, replan_logo_metrics_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
 
-                    st.session_state.replan_customer_arr_df = replan_customer_arr_df
+                    st.session_state.replan_customer_arr_waterfall_df = replan_customer_arr_waterfall_df
+                    st.session_state.replan_customer_arr_df = replan_customer_arr_df  
                     st.session_state.replan_logo_metrics_df = replan_logo_metrics_df
                     st.session_state.replan_metrics_df = replan_metrics_df
-                    
+
             except ValueError as e:
                 st.error(f"Error: {str(e)}")
 

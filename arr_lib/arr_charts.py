@@ -224,3 +224,66 @@ def top_cust_chart(customer_arr_df, bar_color, chart_title):
     )    
 
     return top_final_chart
+
+
+
+def cust_arr_waterfall_chart(df,  chart_title): 
+
+     
+    # Check if 'Total_Sales' column exists, and drop it if it does
+    if 'Total_Sales' in df.columns:
+        df = df.drop(columns=['Total_Sales'])
+ 
+    df = df[df['measureType'] != 'lastMonthRevenue']
+
+    # Running Customer Count 
+    melted_arr_df = pd.melt(df, id_vars=['customerId', 'customerName', 'measureType'], var_name='month', value_name='MRR')
+
+
+    # Calculate min and max values with a bit of padding
+    min_mrr = melted_arr_df['MRR'].min() - (melted_arr_df['MRR'].max() - melted_arr_df['MRR'].min()) * 0.1
+    max_mrr = melted_arr_df['MRR'].max() + (melted_arr_df['MRR'].max() - melted_arr_df['MRR'].min()) * 0.1
+
+
+    # Assuming df is your DataFrame with columns 'month', 'measureType', and 'customerCount'
+
+    # Define a dictionary for translating category names
+    translate_dict = {
+        "lastMonthRevenue" : "Opening Period ARR",
+        "newBusiness" : "New Business",
+        "upSell" : "Expansion",
+        "downSell" : "Contraction",
+        "churn" : "Churn",
+        "monthlyRevenue" : "Closing Period ARR", 
+    }
+
+    # Define the color scheme as a dictionary
+    color_scheme = {
+        "New Business": '#77aaca',
+        "Expansion": 'green',
+        "Contraction": 'magenta',
+        "Churn": '#ee7777',
+        "Closing Period ARR": '#88b988'
+    }
+
+    # Apply the translation to the DataFrame
+    melted_arr_df['translated_measureType'] = melted_arr_df['measureType'].map(translate_dict)
+
+    # Create a line chart
+    arr_wf_chart = alt.Chart(melted_arr_df).mark_line(point=True).encode(
+        x=alt.X('month', axis=alt.Axis(title=None, labelAngle=270, labelOverlap=True)),  # Assuming 'month' is of datetime type; if not, change to 'month:N'
+        y=alt.Y('MRR:Q', axis=alt.Axis(title='Customer MRR', format=',.0f'), scale=alt.Scale(domain=(min_mrr, max_mrr))),
+        color=alt.Color('translated_measureType:N', scale=alt.Scale(domain=list(color_scheme.keys()), range=list(color_scheme.values())), legend=alt.Legend(title=None, orient='top')),  # Position legend at top
+        tooltip=['month', 'translated_measureType', 'MRR']
+    ).properties(
+        title=chart_title,
+        width=1000,
+        height=650
+    ).configure_title(
+        fontSize=14,
+        fontWeight='normal',
+        anchor='middle',
+        orient='bottom', 
+        color='gray')
+    
+    return arr_wf_chart

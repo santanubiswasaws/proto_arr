@@ -18,6 +18,7 @@ if 'metrics_df' not in st.session_state:
 else:
     # copy uploaded ARR metrics from session 
     metrics_df = st.session_state.metrics_df
+    customer_arr_waterfall_df = st.session_state.customer_arr_waterfall_df
     customer_arr_df = st.session_state.customer_arr_df
     logo_metrics_df = st.session_state.logo_metrics_df
 
@@ -26,6 +27,7 @@ if 'replan_metrics_df' not in st.session_state:
 else: 
     # copy adjusted ARR metrics from session 
     replan_metrics_df = st.session_state.replan_metrics_df
+    replan_customer_arr_waterfall_df = st.session_state.replan_customer_arr_waterfall_df
     replan_customer_arr_df = st.session_state.replan_customer_arr_df
     replan_logo_metrics_df = st.session_state.replan_logo_metrics_df
 
@@ -92,10 +94,6 @@ with cust_cout_tab2:
 
 
 
-
-
-
-
 ##
 ## Top customer analysis 
 ##
@@ -119,4 +117,57 @@ with top_cust_tab2:
     st.altair_chart(top_final_chart1, theme="streamlit", use_container_width=False)
 
 
+##
+## Customer MRR Analysis 
+##  
+st.subheader('Customer MRR Analysis')
+cust_arr_tab1, cust_arr_tab2= st.tabs(["Adjusted Values", "Uploaded Values"])
+
+with cust_arr_tab1: 
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    df_original = replan_customer_arr_waterfall_df
+
+    df = replan_customer_arr_waterfall_df[replan_customer_arr_waterfall_df['measureType'] == 'monthlyRevenue']
+
+    name_to_id = pd.Series(df.customerId.values,index=df.customerName).to_dict()
+   
+    # Dropdown to select customer by name
+
+    selected_name = st.selectbox("Select a Customer", df['customerName'])
+
+    # Get customerId for the selected name
+    selected_id = name_to_id[selected_name]
+
+    # Filter the dataframe based on customerId
+    filtered_df = df_original[df_original['customerId'] == selected_id]
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    mrr_wf_result =  ac.cust_arr_waterfall_chart(filtered_df,  'Customer MRR Waterfall - Adjusted')
+
+    st.altair_chart(mrr_wf_result, theme="streamlit", use_container_width=False)
+
+with cust_arr_tab2: 
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    df_original = customer_arr_waterfall_df
+
+    df = customer_arr_waterfall_df[replan_customer_arr_waterfall_df['measureType'] == 'monthlyRevenue']
+
+    name_to_id = pd.Series(df.customerId.values,index=df.customerName).to_dict()
+   
+    # Dropdown to select customer by name
+
+    selected_name = st.selectbox("Select a Customer", df['customerName'])
+
+    # Get customerId for the selected name
+    selected_id = name_to_id[selected_name]
+
+    # Filter the dataframe based on customerId
+    filtered_df = df_original[df_original['customerId'] == selected_id]
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    mrr_wf_result =  ac.cust_arr_waterfall_chart(filtered_df,  'Customer MRR Waterfall - Uploaded')
+    
+    st.altair_chart(mrr_wf_result, theme="streamlit", use_container_width=True)
 
