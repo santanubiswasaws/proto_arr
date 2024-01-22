@@ -221,9 +221,10 @@ def main():
 
         if 'apply_override' not in st.session_state:
             st.session_state.apply_override = None 
+             
 
         if (not override_df.empty ) and (not metrics_df.empty) and st.session_state.column_mapping_status:        
-            st.session_state.apply_override = st.checkbox('Apply Override')
+            st.session_state.apply_override = st.checkbox('Apply Override', st.session_state.apply_override)
 
 
         # -------------------------------------------------------------------------------
@@ -304,8 +305,8 @@ def main():
         if 'replan_customer_arr_df' not in st.session_state:
                 st.session_state.replan_customer_arr_df= pd.DataFrame(columns=['customerId', 'measureType'])
 
-        if 'replan_logo_waterfall_df' not in st.session_state:
-                st.session_state.replan_logo_waterfall_df= pd.DataFrame(columns=['customerId', 'measureType'])
+        if 'replan_logo_metrics_df' not in st.session_state:
+                st.session_state.replan_logo_metrics_df= pd.DataFrame(columns=['customerId', 'measureType'])
 
         if 'replan_metrics_df' not in st.session_state:
                 st.session_state.replan_metrics_df = pd.DataFrame(columns=['customerId', 'measureType'])
@@ -328,10 +329,10 @@ def main():
                     # Call the method to create the metrics df
                     call_edited_df = st.session_state.edited_df     
          
-                    replan_customer_arr_df, replan_logo_waterfall_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
+                    replan_customer_arr_df, replan_logo_metrics_df, replan_metrics_df = create_customer_and_aggregated_metrics(call_edited_df)
 
                     st.session_state.replan_customer_arr_df = replan_customer_arr_df
-                    st.session_state.replan_logo_waterfall_df = replan_logo_waterfall_df
+                    st.session_state.replan_logo_metrics_df = replan_logo_metrics_df
                     st.session_state.replan_metrics_df = replan_metrics_df
                     
             except ValueError as e:
@@ -360,11 +361,11 @@ def main():
             with st.expander('Show/Hide Customer Count', expanded = True):
                 st.subheader('Customer Count :', divider='green') 
 
-                display_replan_logo_waterfall_df = rename_columns(st.session_state.replan_logo_waterfall_df.round(0))
-                display_replan_logo_waterfall_df.set_index(['measureType'], inplace=True)
+                display_replan_logo_metrics_df = rename_columns(st.session_state.replan_logo_metrics_df.round(0))
+                display_replan_logo_metrics_df.set_index(['measureType'], inplace=True)
 
-                display_replan_logo_waterfall_df = decorate_logo_metrics_df(display_replan_logo_waterfall_df)
-                st.dataframe(display_replan_logo_waterfall_df, use_container_width=True)
+                display_replan_logo_metrics_df = decorate_logo_metrics_df(display_replan_logo_metrics_df)
+                st.dataframe(display_replan_logo_metrics_df, use_container_width=True)
 
             st.subheader('ARR Walk (by Type) :', divider='green') 
 
