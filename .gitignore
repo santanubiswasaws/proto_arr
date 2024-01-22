@@ -6,6 +6,7 @@ virenv/
 scratch*.py
 data/
 .vscode/
+.env
 
 # C extensions
 *.so

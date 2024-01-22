@@ -5,7 +5,7 @@ from arr_lib.setup import PREDEFINED_COLUMN_HEADERS
 import streamlit as st
 
 
-def validate_input_data(df):
+def validate_input_data(input_df):
     """
     Validates uploaded contract data 
         1. Validates all the columns 
@@ -20,6 +20,7 @@ def validate_input_data(df):
     # Check if the required columns are present
 
     required_columns = PREDEFINED_COLUMN_HEADERS + ['startDateFormat', 'endDateFormat']
+    df = input_df
 
     # required_columns = ['customerId', 'contractId', 'contractStartDate', 'contractEndDate', 'totalContractValue', 'startDateFormat', 'endDateFormat']
     try:

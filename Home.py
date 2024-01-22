@@ -142,7 +142,7 @@ def main():
             with st.expander('Show/Hide MRR by Customer', expanded = True):
                 st.subheader('MRR by Customer :', divider='green') 
                 # set index to customerId, measureType - for freeze pane functionality
-                display_customer_arr_df = st.session_state.customer_arr_df.round(2)
+                display_customer_arr_df = st.session_state.customer_arr_df.round(2).copy()
                 display_customer_arr_df.set_index(['customerName'], inplace=True)
                 st.dataframe(display_customer_arr_df, use_container_width=True)
 
@@ -152,7 +152,7 @@ def main():
             with st.expander('Show/Hide Customer Count', expanded = True):
                 st.subheader('Customer Count :', divider='green') 
                 # set inde to measureType
-                display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0))
+                display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0)).copy()
                 display_logo_metrics_df.set_index(['measureType'], inplace=True)
 
                 display_logo_metrics_df = decorate_logo_metrics_df(display_logo_metrics_df)
@@ -163,7 +163,9 @@ def main():
 
 
             # Stylize aggregated metrics DF
-            display_metrics_df= stylize_metrics_df(st.session_state.metrics_df)
+
+            display_metrics_df= st.session_state.metrics_df.copy()
+            display_metrics_df= stylize_metrics_df(display_metrics_df) 
 
             st.dataframe(display_metrics_df, use_container_width=True)
         
@@ -198,7 +200,7 @@ def main():
             try:
                 with st.expander('Show/Hide uploaded historical details', expanded = True):
                     st.subheader('Uploaded historical details :', divider='green')     
-                    display_override_df = override_df.round(2)
+                    display_override_df = override_df.round(2).copy()
                     display_override_df.set_index(['customerName'], inplace=True)
                     st.dataframe(display_override_df)
             except Exception as e:
@@ -210,7 +212,7 @@ def main():
                 st.session_state.recon_df = recon_df
                 with st.expander('Show/Hide MRR reconciliation between imported and historical data', expanded = True):
                     st.subheader('MRR reconciliation between imported and historical data :', divider='green')  
-                    display_recon_df = recon_df.round(0)   
+                    display_recon_df = recon_df.round(0).copy()   
                     display_recon_df.set_index(['customerName', 'customerId'], inplace=True)  
                     display_recon_df = highlight_positive_negative_cells(display_recon_df)   
                     display_recon_df = display_recon_df.format("{:,.2f}")      
@@ -359,7 +361,7 @@ def main():
             with st.expander('Show/Hide MRR by Customer', expanded = True):
                 st.subheader('MRR by Customer :', divider='green') 
  
-                display_replan_customer_arr_df = st.session_state.replan_customer_arr_df.round(2)
+                display_replan_customer_arr_df = st.session_state.replan_customer_arr_df.round(2).copy()
 
                 # set inde to customerName  - for freeze pane functionality
                 display_replan_customer_arr_df.set_index(['customerName'], inplace=True)
@@ -370,7 +372,9 @@ def main():
             with st.expander('Show/Hide Customer Count', expanded = True):
                 st.subheader('Customer Count :', divider='green') 
 
-                display_replan_logo_metrics_df = rename_columns(st.session_state.replan_logo_metrics_df.round(0))
+
+                display_replan_logo_metrics_df = st.session_state.replan_logo_metrics_df.round(0).copy()
+                display_replan_logo_metrics_df = rename_columns(display_replan_logo_metrics_df)
                 display_replan_logo_metrics_df.set_index(['measureType'], inplace=True)
 
                 display_replan_logo_metrics_df = decorate_logo_metrics_df(display_replan_logo_metrics_df)
@@ -379,7 +383,8 @@ def main():
             st.subheader('ARR Walk (by Type) :', divider='green') 
 
             # set inde to customerId, measureType - for freeze pane functionality
-            display_replan_metrics_df = stylize_metrics_df(st.session_state.replan_metrics_df)
+            display_replan_metrics_df = st.session_state.replan_metrics_df.copy()        
+            display_replan_metrics_df = stylize_metrics_df(display_replan_metrics_df)
             st.dataframe(display_replan_metrics_df, use_container_width=True)
 
 

@@ -9,7 +9,7 @@ from arr_lib.styling import DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD, DF_HIGHLIGHT_BG_C
 # implemented with presetting the number of months
 
 @st.cache_data
-def create_monthly_buckets(df):
+def create_monthly_buckets(input_df):
     """
         Process uploaded contract data 
         1. Validates all the columns 
@@ -22,6 +22,8 @@ def create_monthly_buckets(df):
     Returns:
     - pd.DataFrame: Processed DataFrame one row for each month - for the customer and contract 
     """
+
+    df = input_df.copy()
 
     # Calculate contractMonths by rounding contractLength/30 - added 0.01 for boundary conditions
     df['contractMonths'] = ((df['contractDuration'] / 30) + 0.01).round()
@@ -65,7 +67,7 @@ def create_monthly_buckets(df):
 
 
 @st.cache_data
-def create_arr_metrics(df):
+def create_arr_metrics(input_df):
     """
     Process df containing monthly rr values for each customer and generates aggregated value.
     Also create the wwaterfall or flow of ARR 
@@ -77,6 +79,7 @@ def create_arr_metrics(df):
     - pd.DataFrame: Dataframe with transposed data for each customer - for each month becoming a column, also gives customer level aggregated revenue
     - pd.DataFrame: Gives the over all metrics for each month, agrregatd for all customers - MRR, ARR, newBusiness, upSell, downSell, churn 
     """
+    df = input_df.copy()
 
     transposed_df = create_transposed_monthly_revenue_matrix(df)
     cust_arr_waterfall_df, customer_arr_df, logo_waterfall_df, metrics_df = create_customer_and_aggregated_metrics(transposed_df)
@@ -85,7 +88,7 @@ def create_arr_metrics(df):
 
 
 @st.cache_data
-def create_transposed_monthly_revenue_matrix (df): 
+def create_transposed_monthly_revenue_matrix (input_df): 
     """
     Process df containing monthly rr values for each customer and creates a transposed dataframe
 
@@ -96,7 +99,7 @@ def create_transposed_monthly_revenue_matrix (df):
     - pd.DataFrame: Dataframe with transposed data - for each month becoming a column, also gives customer level aggregated revenue
     """
 
-
+    df = input_df.copy()
     # Print the original dataframe
     print("Original DataFrame:")
 
@@ -116,7 +119,7 @@ def create_transposed_monthly_revenue_matrix (df):
 
 
 @st.cache_data
-def create_customer_and_aggregated_metrics(df):
+def create_customer_and_aggregated_metrics(input_df):
     """
     Process df containing transposed monthly metrics for each customer with aggregated monthly revenue, and calculates the following metrics
         newBusiness 
@@ -133,7 +136,7 @@ def create_customer_and_aggregated_metrics(df):
     - pd.DataFrame: Gives aggregated metrics  - MRR, ARR, newBusiness, upSell, downSell, churn 
     """
 
-
+    df = input_df.copy()
     df.insert(2, 'measureType', 'monthlyRevenue')
 
     # Identify 'newBusiness' rows based on the condition
@@ -241,7 +244,7 @@ def create_customer_and_aggregated_metrics(df):
 
 
 @st.cache_data
-def create_aggregated_arr_metrics(df):
+def create_aggregated_arr_metrics(input_df):
     """
     Process df containing transposed monthly metrics for each customer, aggregates the values for all customers and returns the aggregated df
 
@@ -252,21 +255,21 @@ def create_aggregated_arr_metrics(df):
     - pd.DataFrame: Gives the over all metrics for each month - MRR, ARR, newBusiness, upSell, downSell, churn 
     """
 
-
+    df = input_df.copy()
     # Group by 'customerId', 'CustomerName' and aggregate the sum across all measureTypes for each month
     aggregated_df = df.groupby(['measureType'], observed=True).agg({col: 'sum' for col in df.columns[3:]}).reset_index()
 
     return aggregated_df
 
 @st.cache_data
-def calculate_retention_metrics (df):
+def calculate_retention_metrics (input_df):
     """
     calculates the following metrics 
         - Gross Renewal Rate : measured as 1 - { (cummulative sum of last 12 months churn and downsell ) / revenue of 12 month prior } 
         - Net Retention Rate : measured as 1 - { (cummulative sum of last 12 months upsell, churn and downsell ) / revenue of 12 month prior  } 
         - Yearly ARR Growth: measured as   ( current period reenue / revenue of 12 month prior) - 1
     """
-
+    df = input_df.copy()
     upSell_df = df[df['measureType']=='upSell']
     downSell_df = df[df['measureType']=='downSell']
     churn_df = df[df['measureType']=='churn']
@@ -300,10 +303,11 @@ def calculate_retention_metrics (df):
     return temp_metrics_df
 
 @st.cache_data
-def calculate_trailing_metrics(df, trailing_period, newMeasureType): 
+def calculate_trailing_metrics(input_df, trailing_period, newMeasureType): 
     """
     calculates the trailing cummulative sum of a metrics for a given period 
     """
+    df = input_df.copy()
     df = df.transpose()
     df.columns = df.iloc[0]  # Set the first row as column headers
     df = df[1:]  # Remove the first row
@@ -320,10 +324,11 @@ def calculate_trailing_metrics(df, trailing_period, newMeasureType):
 
 
 @st.cache_data
-def calculate_previous_period_values(df, trailing_period, measureType, newMeasureType): 
+def calculate_previous_period_values(input_df, trailing_period, measureType, newMeasureType): 
     """
     calculates the trailing cummulative sum of a metrics for a given period 
     """
+    df = input_df.copy()
     df = df.transpose()
     df.columns = df.iloc[0]  # Set the first row as column headers
     df = df[1:]  # Remove the first row
@@ -340,7 +345,7 @@ def calculate_previous_period_values(df, trailing_period, measureType, newMeasur
 
 
 @st.cache_data
-def calculate_logo_count_waterfall (df):
+def calculate_logo_count_waterfall (input_df):
     """
     calculates the logo waterfall metrics 
         Beging Customer Count
@@ -349,6 +354,7 @@ def calculate_logo_count_waterfall (df):
         Ending Customers Count 
     """
 
+    df = input_df.copy()
 
     # filter out upsell and downsell records 
 
@@ -402,7 +408,7 @@ def calculate_logo_count_waterfall (df):
 
 
 @st.cache_data
-def create_waterfall(df): 
+def create_waterfall(input_df): 
     """
     Process df containing monthly rr metrics, and add the previous months revenue as the opening balance and then reorders the rows as
         lastMonthRevenue 
@@ -418,6 +424,7 @@ def create_waterfall(df):
     Returns:
     - pd.DataFrame: Dataframe with waterfall details 
     """
+    df = input_df.copy()
 
     # CCopy the monthly revenue to waterfall df 
     waterfall_df = df[df['measureType']=='monthlyRevenue'].copy()
@@ -444,7 +451,7 @@ def create_waterfall(df):
 
 
 @st.cache_data
-def sort_by_first_month_of_sales(df): 
+def sort_by_first_month_of_sales(input_df): 
     """
     Sort the df containing monthwise customer revenue grid, in the order of first month of sale
 
@@ -454,6 +461,8 @@ def sort_by_first_month_of_sales(df):
     Returns:
     - pd.DataFrame: Same grid but sorted in first month of sales 
     """
+
+    df = input_df.copy()
 
     # assumes the first 2 columns are customerId, customerName
 
@@ -476,7 +485,7 @@ def sort_by_first_month_of_sales(df):
 
 
 @st.cache_data
-def annualize_agg_arr(df): 
+def annualize_agg_arr(input_df): 
     """
     Converts MRR to ARR 
 
@@ -486,6 +495,9 @@ def annualize_agg_arr(df):
     Returns:
     - pd.DataFrame: Annualized waterfall df 
     """
+
+    df = input_df.copy()
+
     annualized_df = df
 
 #    Select the numerical columns (excluding 'measureType')
@@ -498,7 +510,7 @@ def annualize_agg_arr(df):
 
 
 @st.cache_data
-def rename_columns(df):
+def rename_columns(input_df):
     """
     Converts the name of the ARR metrcis to meaningful display values
 
@@ -509,15 +521,18 @@ def rename_columns(df):
     - pd.DataFrame: Same dataframe but the values in the measureType column is transalted based on the ARR_DISPLAY_COLUMN_MAP dict
     """
     # Replace 'measureType' values based on the mapping dictionary
+    df = input_df.copy()
+
     df['measureType'] = df['measureType'].replace(ARR_DISPLAY_COLUMN_MAP)
 
     return df
 
 
-def stylize_metrics_df(df):
+def stylize_metrics_df(input_df):
     """
     Stylize the dataframe using pandas styler class and applymap 
     """
+    df = input_df.copy()
 
     # drop metrics with intermediate
     # transpose the df - so that measureType become columns and months become rows
@@ -557,7 +572,7 @@ def stylize_metrics_df(df):
 
 
 @st.cache_data
-def reconcile_overrides(original_df, override_df):
+def reconcile_overrides(input_original_df, input_override_df):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
 
@@ -568,6 +583,9 @@ def reconcile_overrides(original_df, override_df):
     Returns:
     - pd.DataFrame: DataFrame with differences between the two input DataFrames, truncated to the columns of override_df
     """
+
+    original_df = input_original_df.copy()
+    override_df = input_override_df.copy()
 
     # Replace NaN values with zeros in both DataFrames
     original_df.fillna(0, inplace=True)
@@ -636,7 +654,7 @@ def style_positive_negative_lambda(val, positive_bg_color, negative_bg_color, te
     
 
 @st.cache_data    
-def insert_blank_row(df, row_index, index_value, fill_value): 
+def insert_blank_row(input_df, row_index, index_value, fill_value): 
     """
     Insert a blank row into a DataFrame at the specified row index, 
     maintaining the categorical 'measureType' index.
@@ -645,6 +663,9 @@ def insert_blank_row(df, row_index, index_value, fill_value):
     :param row_index: Index at which the blank row should be inserted.
     :return: New DataFrame with the blank row inserted.
     """
+
+    df = input_df.copy()
+
     # Create a DataFrame with a single blank row
     blank_row = pd.DataFrame({col: fill_value for col in df.columns}, index=[row_index])
     
@@ -659,7 +680,7 @@ def insert_blank_row(df, row_index, index_value, fill_value):
     return df_updated
 
 
-def decorate_agg_metrics(df):
+def decorate_agg_metrics(input_df):
     """
     Apply Pandas dataframe styles to the aggregated metrics df 
     currently the following decorations are implemented 
@@ -670,6 +691,8 @@ def decorate_agg_metrics(df):
     
     Note: Streamlit has does not render all the pandas styling 
     """
+
+    df = input_df.copy()
 
     # insert a blank row after aggregated ARR metrics 
     df = insert_blank_row(df, 6, '-------------------------------------------------', '--------')
@@ -715,7 +738,7 @@ def decorate_agg_metrics(df):
     return styled_df
 
 
-def decorate_logo_metrics_df(df):
+def decorate_logo_metrics_df(input_df):
     """
     Apply Pandas dataframe styles to the aggregated metrics df 
     currently the following decorations are implemented 
@@ -725,6 +748,8 @@ def decorate_logo_metrics_df(df):
     
     Note: Streamlit has does not render all the pandas styling 
     """
+
+    df = input_df.copy()
 
     neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
     curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
@@ -768,7 +793,7 @@ def decorate_logo_metrics_df(df):
 
 
 @st.cache_data
-def apply_overrides(original_df, override_df ):
+def apply_overrides(input_original_df, input_override_df ):
     """
     Compares the scratchpad and override dfs - and create a recon_df with the difference in values for a given customer and month
 
@@ -779,6 +804,9 @@ def apply_overrides(original_df, override_df ):
     Returns:
     - pd.DataFrame: for each customer as row and months as columns, it creates the differnce between the tow input dfs 
     """
+
+    original_df = input_original_df.copy()
+    override_df = input_override_df.copy()
 
 
     # Melt the DataFrames to convert months into rows
