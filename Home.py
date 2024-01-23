@@ -35,6 +35,11 @@ def main():
         st.session_state.df = pd.DataFrame()
         print('getting wiped')
 
+
+    # Intialize few flags 
+    if 'prepare_ai_data' not in st.session_state:  
+        st.session_state.prepare_ai_data = "False"          
+
     # upload files
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"], on_change = clear_session_cb)
     if uploaded_file is not None:
@@ -126,6 +131,8 @@ def main():
                     st.session_state.customer_arr_df = customer_arr_df
                     st.session_state.logo_metrics_df = logo_metrics_df
                     st.session_state.metrics_df = metrics_df
+
+                    st.session_state.prepare_ai_data = "True"    
 
             except ValueError as e:
                 st.error(f"Error: {str(e)}")
@@ -345,6 +352,8 @@ def main():
                     st.session_state.replan_customer_arr_df = replan_customer_arr_df  
                     st.session_state.replan_logo_metrics_df = replan_logo_metrics_df
                     st.session_state.replan_metrics_df = replan_metrics_df
+
+                    st.session_state.prepare_ai_data = "True"    
 
             except ValueError as e:
                 st.error(f"Error: {str(e)}")

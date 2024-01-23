@@ -12,6 +12,8 @@ st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
 st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
 st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
+st.header("Visualize ARR Data")
+st.markdown("<br>", unsafe_allow_html=True)
 
 if 'metrics_df' not in st.session_state: 
     metrics_df = pd.DataFrame()
