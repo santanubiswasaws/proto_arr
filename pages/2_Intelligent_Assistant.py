@@ -254,20 +254,30 @@ with st.expander("Show/Hide aggregated ARR details"):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-user_query = st.text_input("Enter your query here:", key="query_input")
 
-if st.button("Submit Query") and user_query:
+
+with st.form(key='query_form'):
+    user_query = st.text_input("Enter your query here:", key="query_input")
+    submit_button = st.form_submit_button(label='Submit Query')
+
+if submit_button:
     process_query(user_query)
+
+# user_query = st.text_input("Enter your query here:", key="query_input")
+
+# if st.button("Submit Query") and user_query:
+#     process_query(user_query)
     
 
 # Display only the last Q&A immediately after the button is pressed
 st.markdown("<br>", unsafe_allow_html=True)
 if st.session_state.get('show_last_only', False):
     last_qa = st.session_state.conversation_history[:2]
-    for message_type, message in last_qa:
-        st.write(f"{message_type} {message}")
-        if isinstance(message, pd.DataFrame):
-            st.dataframe(message)
+    with st.container(border=True):
+        for message_type, message in last_qa:
+            st.write(f"{message_type} {message}")
+            if isinstance(message, pd.DataFrame):
+                st.dataframe(message)
     st.session_state.show_last_only = False
 
 
