@@ -162,7 +162,7 @@ def main():
                 display_logo_metrics_df = rename_columns(st.session_state.logo_metrics_df.round(0)).copy()
                 display_logo_metrics_df.set_index(['measureType'], inplace=True)
 
-                display_logo_metrics_df = decorate_logo_metrics_df(display_logo_metrics_df)
+                display_logo_metrics_df = decorate_logo_metrics_df(display_logo_metrics_df, 'blue')
                 st.dataframe(display_logo_metrics_df, use_container_width=True)
 
 
@@ -172,7 +172,7 @@ def main():
             # Stylize aggregated metrics DF
 
             display_metrics_df= st.session_state.metrics_df.copy()
-            display_metrics_df= stylize_metrics_df(display_metrics_df) 
+            display_metrics_df= stylize_metrics_df(display_metrics_df, 'blue') 
 
             st.dataframe(display_metrics_df, use_container_width=True)
         
@@ -386,14 +386,14 @@ def main():
                 display_replan_logo_metrics_df = rename_columns(display_replan_logo_metrics_df)
                 display_replan_logo_metrics_df.set_index(['measureType'], inplace=True)
 
-                display_replan_logo_metrics_df = decorate_logo_metrics_df(display_replan_logo_metrics_df)
+                display_replan_logo_metrics_df = decorate_logo_metrics_df(display_replan_logo_metrics_df, 'green')
                 st.dataframe(display_replan_logo_metrics_df, use_container_width=True)
 
             st.subheader('ARR Walk (by Type) :', divider='green') 
 
             # set inde to customerId, measureType - for freeze pane functionality
             display_replan_metrics_df = st.session_state.replan_metrics_df.copy()        
-            display_replan_metrics_df = stylize_metrics_df(display_replan_metrics_df)
+            display_replan_metrics_df = stylize_metrics_df(display_replan_metrics_df, 'green')
             st.dataframe(display_replan_metrics_df, use_container_width=True)
 
 

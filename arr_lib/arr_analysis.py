@@ -5,6 +5,8 @@ from arr_lib.setup import ARR_DISPLAY_COLUMN_MAP
 from arr_lib.styling import DF_HIGHLIGHT_TEXT_COLOR, DF_HIGHLIGHT_TEXT_WEIGHT
 from arr_lib.styling import DF_NEGATIVE_HIGHLIGHT_BG_COLOR, DF_POSITIVE_HIGHLIGHT_BG_COLOR
 from arr_lib.styling import DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD, DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
+from arr_lib.styling import DF_LIGHT_BLUE_BG, DF_LIGHTER_BLUE_BG
+
 
 # implemented with presetting the number of months
 
@@ -528,7 +530,7 @@ def rename_columns(input_df):
     return df
 
 
-def stylize_metrics_df(input_df):
+def stylize_metrics_df(input_df, theme):
     """
     Stylize the dataframe using pandas styler class and applymap 
     """
@@ -566,7 +568,7 @@ def stylize_metrics_df(input_df):
 
     stylized_df.set_index(['measureType'], inplace=True)
 
-    stylized_df=decorate_agg_metrics(stylized_df)
+    stylized_df=decorate_agg_metrics(stylized_df, theme)
 
     return stylized_df
 
@@ -680,7 +682,7 @@ def insert_blank_row(input_df, row_index, index_value, fill_value):
     return df_updated
 
 
-def decorate_agg_metrics(input_df):
+def decorate_agg_metrics(input_df, theme):
     """
     Apply Pandas dataframe styles to the aggregated metrics df 
     currently the following decorations are implemented 
@@ -697,11 +699,19 @@ def decorate_agg_metrics(input_df):
     # insert a blank row after aggregated ARR metrics 
     df = insert_blank_row(df, 6, '-------------------------------------------------', '--------')
 
-    neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
-    curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
-    prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
-    text_color = DF_HIGHLIGHT_TEXT_COLOR
-    text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+    if theme == 'green': 
+        neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+        curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
+        prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
+        text_color = DF_HIGHLIGHT_TEXT_COLOR
+        text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+    else: 
+        neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+        curr_period_bg = DF_LIGHT_BLUE_BG
+        prev_period_bg = DF_LIGHTER_BLUE_BG
+        text_color = DF_HIGHLIGHT_TEXT_COLOR
+        text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+
 
     # Function to apply styling to each cell
     def style_cell(val):
@@ -738,7 +748,7 @@ def decorate_agg_metrics(input_df):
     return styled_df
 
 
-def decorate_logo_metrics_df(input_df):
+def decorate_logo_metrics_df(input_df, theme):
     """
     Apply Pandas dataframe styles to the aggregated metrics df 
     currently the following decorations are implemented 
@@ -751,11 +761,19 @@ def decorate_logo_metrics_df(input_df):
 
     df = input_df.copy()
 
-    neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
-    curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
-    prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
-    text_color = DF_HIGHLIGHT_TEXT_COLOR
-    text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+    if theme is 'green':
+        neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+        curr_period_bg = DF_HIGHLIGHT_BG_COLOR_CURR_PERIOD
+        prev_period_bg = DF_HIGHLIGHT_BG_COLOR_PREV_PERIOD
+        text_color = DF_HIGHLIGHT_TEXT_COLOR
+        text_weight = DF_HIGHLIGHT_TEXT_WEIGHT
+    else:
+        neg_bg = DF_NEGATIVE_HIGHLIGHT_BG_COLOR
+        curr_period_bg = DF_LIGHT_BLUE_BG
+        prev_period_bg = DF_LIGHTER_BLUE_BG
+        text_color = DF_HIGHLIGHT_TEXT_COLOR
+        text_weight = DF_HIGHLIGHT_TEXT_WEIGHT       
+
 
     # Function to apply styling to each cell
     def style_cell(val):
