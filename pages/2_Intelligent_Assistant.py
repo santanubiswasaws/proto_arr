@@ -216,6 +216,19 @@ Answer: customer_arr_df
 
 Question: "What's the overall monthly recurring revenue for the company in 2024?"
 Answer: metrics_df
+
+Question: "what is the total revenue for Customer A in Q2 of 2023?"
+Answer: customer_arr_df
+
+Question: "what is the total revenue for Customer B in July of 2021?"
+Answer: customer_arr_df
+
+Question: "what is the total churn for Customer C in July of 2021?"
+Answer: customer_arr_df
+
+Question: "what is the total churn for Customer D in Q4 of 2025?"
+Answer: customer_arr_df
+
 """
 
 def process_query(user_query):
