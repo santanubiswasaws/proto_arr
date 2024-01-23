@@ -111,6 +111,9 @@ with st.spinner("Preparing data for the assistant"):
                             var_name='month', 
                             value_name='amount')
 
+
+        # vidide the amounts with 12 - as it is annualized
+        melted_metrics_df['amount'] = melted_metrics_df['amount'] / 12
         # Splitting the 'YearMonth' into 'Year' and 'Month'
         split_columns_agg = melted_metrics_df['month'].str.split('-', expand=True)
         melted_metrics_df['year'] = split_columns_agg[0]
