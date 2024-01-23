@@ -24,6 +24,8 @@ st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
 st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
 st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
+llm_model="gpt-3.5-turbo-0613"
+
 
 load_dotenv()
 
@@ -59,20 +61,40 @@ if (metrics_df.empty or replan_metrics_df.empty):
 
 
 
-agent_customer_arr = create_pandas_dataframe_agent(
-    ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613"),
-    customer_arr_waterfall_df,
-    verbose=True,
-    agent_type=AgentType.OPENAI_FUNCTIONS,
-)
+# melt the dataframe for better query results 
+melted_customer_arr_waterfall_df = customer_arr_waterfall_df.melt(id_vars=['customerId', 'customerName', 'measureType'], 
+                    var_name='month', 
+                    value_name='amount')
 
-agent_agg_arr = create_pandas_dataframe_agent(
-    ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613"),
-    customer_arr_waterfall_df,
-    verbose=True,
-    agent_type=AgentType.OPENAI_FUNCTIONS,
-)
+# Splitting the 'yearMonth' into 'Year' and 'Month'
+split_columns = melted_customer_arr_waterfall_df['month'].str.split('-', expand=True)
+melted_customer_arr_waterfall_df['year'] = split_columns[0]
+melted_customer_arr_waterfall_df['monthOfyear'] = split_columns[1]
+melted_customer_arr_waterfall_df = melted_customer_arr_waterfall_df[melted_customer_arr_waterfall_df['amount'] != 0]
 
+
+# melt the dataframe for better query results 
+melted_metrics_df = metrics_df.melt(id_vars=['measureType'], 
+                    var_name='month', 
+                    value_name='amount')
+
+# Splitting the 'YearMonth' into 'Year' and 'Month'
+split_columns_agg = melted_metrics_df['month'].str.split('-', expand=True)
+melted_metrics_df['year'] = split_columns_agg[0]
+melted_metrics_df['monthOfYear'] = split_columns_agg[1]
+#melted_metrics_df = melted_metrics_df[melted_metrics_df['amount'] != 0]
+
+
+
+def crate_df_agent(df, model):
+
+    agent = create_pandas_dataframe_agent(
+        ChatOpenAI(temperature=0, model=model),
+        df,
+        verbose=True,
+        agent_type=AgentType.OPENAI_FUNCTIONS,
+    )
+    return agent
 
 
 # Initialize session state for conversation history
@@ -115,6 +137,9 @@ Answer: customer_arr_df
 Question: "Which customers are up for renewal as of January 2024."
 Answer: customer_arr_df
 
+Question: "In which month does customer A churn?"
+Answer: customer_arr_df
+
 Question: "How much churn occurred across all customers in March 2024?"
 Answer: metrics_df
 
@@ -125,17 +150,6 @@ Question: "What's the overall monthly recurring revenue for the company in 2024?
 Answer: metrics_df
 """
 
-
-def query_cust_dataframe(question, dataframe):
-    response = agent_customer_arr.run(question)
-    return response
-
-def query_agg_dataframe(question, dataframe):
-    response = agent_agg_arr.run(question)
-    return response
-
-
-
 def process_query(user_query):
     if user_query:
         # Classify the query to the appropriate dataframe
@@ -144,9 +158,11 @@ def process_query(user_query):
         # Query the designated dataframe
         response = ""
         if df_to_query == 'customer_arr_df':
-            response = query_cust_dataframe(user_query, customer_arr_df)
+            cust_agent = crate_df_agent(melted_customer_arr_waterfall_df, llm_model)
+            response = cust_agent.run(user_query)
         elif df_to_query == 'metrics_df':
-            response = query_agg_dataframe(user_query, metrics_df)
+            agg_agent = crate_df_agent(melted_metrics_df, llm_model)
+            response = agg_agent.run(user_query)
         else:
             response = "Unable to classify the query."
 
@@ -167,11 +183,15 @@ with st.expander("Show/Hide ustomer MRR details"):
     ai_display_customer_rr_df.set_index(['customerName', 'measureType'], inplace=True)
     st.dataframe(ai_display_customer_rr_df)
 
+    st.dataframe(melted_customer_arr_waterfall_df)
+
 with st.expander("Show/Hide aggregated ARR details"): 
     st.markdown("<br>", unsafe_allow_html=True)
     ai_display_metrics_df= metrics_df.copy()
     ai_display_metrics_df.set_index(['measureType'], inplace=True)
     st.dataframe(ai_display_metrics_df)
+
+    st.dataframe(melted_metrics_df)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -201,10 +221,20 @@ if st.session_state.get('show_last_only', False):
             st.dataframe(message)
     st.session_state.show_last_only = False
 
-st.markdown("<br>", unsafe_allow_html=True)
+
+
+# Display query history 
+st.markdown(f"<br><p class='md_big'>Query History : </p>", unsafe_allow_html=True)
+
 # Expander for chat history
 with st.expander("Show/Hide Full Query History"):
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # Clear chat history button
+    if st.button("Clear Chat History"):
+        st.session_state.conversation_history = []
+        st.experimental_rerun()
+    
     for message_type, message in st.session_state.conversation_history:
         st.write(f"{message_type} {message}")
         if isinstance(message, pd.DataFrame):
@@ -213,10 +243,7 @@ with st.expander("Show/Hide Full Query History"):
         if message_type == "Response:":
             st.markdown("---")  # Horizontal line after each answer
 
-    # Clear chat history button
-    if st.button("Clear Chat History"):
-        st.session_state.conversation_history = []
-        st.experimental_rerun()
+
 
 
 # if submit_button and user_query:
