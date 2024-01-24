@@ -88,7 +88,7 @@ with card_tab1:  # Adjusted metrics
 
     with card_col3: 
         # Churn
-        st.metric(label="Churned Logo in last 12 months", value=rp_logo_churn, delta=rp_logo_churn_rate)
+        st.metric(label="Churned Logo in last 12 months", value=rp_logo_churn, delta=rp_logo_churn_rate, delta_color="inverse")
 
     with card_col4: 
         # Net retention
@@ -141,7 +141,7 @@ with card_tab2:
         st.metric(label="New Logo in last 12 months", value=logo_cnt, delta=logo_growth)
 
     with card_col3a: 
-        st.metric(label="Churned Logo in last 12 months)", value=logo_churn, delta=logo_churn_rate)
+        st.metric(label="Churned Logo in last 12 months)", value=logo_churn, delta=logo_churn_rate, delta_color="inverse")
 
     with card_col4a: 
         st.metric(label="Net Retention (NRR))", value=nr, delta=None)
