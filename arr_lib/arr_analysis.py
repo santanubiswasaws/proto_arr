@@ -536,11 +536,13 @@ def stylize_metrics_df(input_df, theme):
     """
     df = input_df.copy()
 
+
     # drop metrics with intermediate
     # transpose the df - so that measureType become columns and months become rows
     stylized_df = df.transpose()
     stylized_df.columns = stylized_df.iloc[0]  # Set the first row as column headers
     stylized_df = stylized_df[1:]  # Remove the first row
+
 
     # filter only the relevant columns
     stylized_df = stylized_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRetentionRate', 'netRetentionRate', 'yearlyRevenueGrowth']]

@@ -5,7 +5,7 @@ import altair as alt
 #from langchain.llms import OpenAI
 from openai import OpenAI 
 
-client = OpenAI()
+
 from dotenv import load_dotenv
 import os
 
@@ -42,6 +42,7 @@ if os.getenv("OPENAI_API_KEY") is None or os.getenv("OPENAI_API_KEY") == "":
 else:
     print("OPENAI_API_KEY is set")
 
+client = OpenAI()
 
 if 'metrics_df' not in st.session_state: 
     metrics_df = pd.DataFrame()
