@@ -8,6 +8,7 @@ from arr_lib.styling import GLOBAL_STYLING
 
 
 
+
 def arr_walk_chart(metrics_df, bar_color, chart_title): 
     """
     generate and return an altair chart - for customer ARR walk 

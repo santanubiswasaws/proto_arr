@@ -206,7 +206,7 @@ def process_query(user_query):
         st.session_state.conversation_history.insert(0, ("Response:", response))
         st.session_state.conversation_history.insert(0, ("Query:", user_query))
 
-with st.expander("Show/Hide ustomer MRR details"): 
+with st.expander("Show/Hide Customer MRR details"): 
     st.markdown("<br>", unsafe_allow_html=True)
     st.dataframe(pivoted_cust_df, use_container_width=True)
 
