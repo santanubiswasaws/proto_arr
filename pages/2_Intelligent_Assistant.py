@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+from datetime import datetime
 
 #from langchain.llms import OpenAI
 from openai import OpenAI 
@@ -78,10 +79,15 @@ with st.spinner("Preparing data for the assistant"):
     if (st.session_state.prepare_ai_data): 
 
 
+        print(f"1 Current Time = {datetime.now().strftime('%H:%M:%S')}")
+
         # melt the dataframe for better query results 
         melted_customer_arr_waterfall_df = customer_arr_waterfall_df.melt(id_vars=['customerId', 'customerName', 'measureType'], 
                             var_name='month', 
                             value_name='amount')
+
+
+        print(f"2 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         # Splitting the 'yearMonth' into 'Year' and 'Month'
         split_columns = melted_customer_arr_waterfall_df['month'].str.split('-', expand=True)
@@ -89,32 +95,48 @@ with st.spinner("Preparing data for the assistant"):
         melted_customer_arr_waterfall_df['monthOfYear'] = split_columns[1]
         melted_customer_arr_waterfall_df = melted_customer_arr_waterfall_df[melted_customer_arr_waterfall_df['amount'] != 0]
 
+        print(f"3 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
 
 
         # Filter the DataFrame for specific measureType values
-        filtered_df = melted_customer_arr_waterfall_df[melted_customer_arr_waterfall_df['measureType'].isin(['monthlyRevenue', 'churn'])]
+        filtered_df = melted_customer_arr_waterfall_df[melted_customer_arr_waterfall_df['measureType']
+                    .isin(['monthlyRevenue', 'newBusiness', 'upSell', 'downSell', 'churn'])]
+
+        print(f"3a Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         filtered_df['measureType'] = filtered_df['measureType'].replace('monthlyRevenue', 'revenue')
+        filtered_df['measureType'] = filtered_df['measureType'].replace('upSell', 'expansion')
+        filtered_df['measureType'] = filtered_df['measureType'].replace('downSell', 'contraction')
+
+        print(f"3b Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         #Filter the DataFrame for specific measureType values
-        filtered_df = filtered_df[filtered_df['measureType'].isin(['revenue', 'churn'])]
+        #filtered_df = filtered_df[filtered_df['measureType'].isin(['revenue', 'newBusiness', 'churn'])]
+
+        print(f"4 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         #Using pivot_table on the filtered DataFrame
         pivoted_cust_df = filtered_df.pivot_table(index=['customerId', 'customerName', 'month', 'year', 'monthOfYear'], 
                                             columns='measureType', 
                                             values='amount',
                                             aggfunc='first').fillna(0)
+        
+        print(f"4a Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         #Resetting the index to turn the indexes back into columns
         pivoted_cust_df.reset_index(inplace=True)
-  
+
+        print(f"5 Current Time = {datetime.now().strftime('%H:%M:%S')}")
+
         st.session_state.pivoted_cust_df = pivoted_cust_df
 
         # melt the dataframe for better query results 
         melted_metrics_df = metrics_df.melt(id_vars=['measureType'], 
                             var_name='month', 
                             value_name='amount')
+
+        print(f"6 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
 
         # vidide the amounts with 12 - as it is annualized
@@ -124,6 +146,8 @@ with st.spinner("Preparing data for the assistant"):
         melted_metrics_df['year'] = split_columns_agg[0]
         melted_metrics_df['monthOfYear'] = split_columns_agg[1]
         #melted_metrics_df = melted_metrics_df[melted_metrics_df['amount'] != 0]
+
+        print(f"7 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
         # Filter the DataFrame for specific measureType values
         filtered_df_1 = melted_metrics_df[melted_metrics_df['measureType'].isin(['monthlyRevenue', 'churn'])]
@@ -138,6 +162,9 @@ with st.spinner("Preparing data for the assistant"):
         pivoted_agg_df.reset_index(inplace=True)
         st.session_state.pivoted_agg_df = pivoted_agg_df
 
+
+        print(f"8 Current Time = {datetime.now().strftime('%H:%M:%S')}")
+
         st.session_state.prepare_ai_data = False
 
 
@@ -148,6 +175,8 @@ with st.spinner("Preparing data for the assistant"):
     pivoted_agg_df = st.session_state.pivoted_agg_df 
     pivoted_agg_df['year'] = pd.to_numeric(pivoted_agg_df['year'], errors='coerce').fillna(0).astype(int)
     pivoted_agg_df['monthOfYear'] = pd.to_numeric(pivoted_agg_df['monthOfYear'], errors='coerce').fillna(0).astype(int)
+
+    print(f"9 Current Time = {datetime.now().strftime('%H:%M:%S')}")
 
 
 def crate_df_agent(df, model):
@@ -220,8 +249,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 
 with st.form(key='query_form'):
-    user_query = st.text_input("Enter your query here:", key="query_input")
-    submit_button = st.form_submit_button(label='Submit Query')
+    user_query = st.text_input("What question do you have? ", key="query_input")
+    submit_button = st.form_submit_button(label='Get Answer')
 
 if submit_button:
     process_query(user_query)

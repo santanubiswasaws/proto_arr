@@ -115,6 +115,7 @@ with card_tab1:
         rp_arr = "{:,.0f}".format(rp_arr)
 
         rp_arr_growth = filtered_data.loc[(filtered_data['month'] == selected_month) & (filtered_data['measureType'] == 'yearlyRevenueGrowth'), 'value'].values[0] 
+        rp_arr_growth *= 100
         rp_arr_growth = "{:,.2f}%".format(rp_arr_growth)
 
         st.metric(label="ARR (in thousands)", value=rp_arr, delta=rp_arr_growth)
@@ -213,6 +214,7 @@ with card_tab2:
         arr = "{:,.0f}".format(arr)
 
         arr_growth = met_filtered_data.loc[(met_filtered_data['month'] == met_selected_month) & (met_filtered_data['measureType'] == 'yearlyRevenueGrowth'), 'value'].values[0] 
+        arr_growth *= 100
         arr_growth = "{:,.2f}%".format(arr_growth)
 
         st.metric(label="ARR (in thousands)", value=arr, delta=arr_growth)
@@ -387,4 +389,9 @@ with cust_arr_tab2:
 st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
 st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
 st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
+
+
+
+
+
 
