@@ -293,7 +293,7 @@ def calculate_retention_metrics (input_df):
     temp_metrics_df.columns = temp_metrics_df.iloc[0]  # Set the first row as column headers
     temp_metrics_df = temp_metrics_df[1:]  # Remove the first row
 
-    temp_metrics_df['grossRenewalRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
+    temp_metrics_df['grossRetentionRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
     temp_metrics_df['netRetentionRate'] = temp_metrics_df.apply(lambda row: (1 + (row['trailingDownSell'] + row['trailingChurn'] + row['trailingUpSell']) / row['prevYearRevenue']) if row['prevYearRevenue'] is not None else None, axis=1)
     temp_metrics_df['yearlyRevenueGrowth'] = temp_metrics_df.apply(lambda row: ( row['monthlyRevenue']  / row['prevYearRevenue'] - 1) if row['prevYearRevenue'] is not None else None, axis=1)
 
@@ -543,7 +543,7 @@ def stylize_metrics_df(input_df, theme):
     stylized_df = stylized_df[1:]  # Remove the first row
 
     # filter only the relevant columns
-    stylized_df = stylized_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRenewalRate', 'netRetentionRate', 'yearlyRevenueGrowth']]
+    stylized_df = stylized_df[['lastMonthRevenue', 'newBusiness', 'upSell', 'downSell', 'churn', 'monthlyRevenue', 'grossRetentionRate', 'netRetentionRate', 'yearlyRevenueGrowth']]
 
     # these metrics are formatted with 0 precision 
     stylized_df['lastMonthRevenue'] = stylized_df['lastMonthRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
@@ -554,7 +554,7 @@ def stylize_metrics_df(input_df, theme):
     stylized_df['monthlyRevenue'] = stylized_df['monthlyRevenue'].apply(lambda x: '{:,.0f}'.format(x) if not pd.isnull(x)  else None)
 
     # these metrics are formatted as % with 2 digit precision 
-    stylized_df['grossRenewalRate'] = stylized_df['grossRenewalRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
+    stylized_df['grossRetentionRate'] = stylized_df['grossRetentionRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
     stylized_df['netRetentionRate'] = stylized_df['netRetentionRate'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
     stylized_df['yearlyRevenueGrowth'] = stylized_df['yearlyRevenueGrowth'].apply(lambda x: '{:,.2%}'.format(x) if not pd.isnull(x)  else None)
 

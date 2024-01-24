@@ -142,7 +142,7 @@ with card_tab1:
     with card_col4: 
 
         # Gross retention 
-        rp_gr = filtered_data.loc[(filtered_data['month'] == selected_month) & (filtered_data['measureType'] == 'grossRenewalRate'), 'value'].values[0] 
+        rp_gr = filtered_data.loc[(filtered_data['month'] == selected_month) & (filtered_data['measureType'] == 'grossRetentionRate'), 'value'].values[0] 
         rp_gr *= 100
         rp_gr = "{:,.2f}%".format(rp_gr)
         st.metric(label="Gross Retention (GRR))", value=rp_gr, delta=None)
@@ -238,7 +238,7 @@ with card_tab2:
     with card_col4a: 
 
         # Gross retention 
-        gr = met_filtered_data.loc[(met_filtered_data['month'] == met_selected_month) & (met_filtered_data['measureType'] == 'grossRenewalRate'), 'value'].values[0] 
+        gr = met_filtered_data.loc[(met_filtered_data['month'] == met_selected_month) & (met_filtered_data['measureType'] == 'grossRetentionRate'), 'value'].values[0] 
         gr *= 100 
         gr = "{:,.2f}%".format(gr)
         st.metric(label="Gross Retention (NRR))", value=gr, delta=None)

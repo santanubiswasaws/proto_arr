@@ -19,7 +19,7 @@ ARR_DISPLAY_COLUMN_MAP = {
         "downSell" : "Contraction",
         "churn" : "Churn",
         "monthlyRevenue" : "Closing Period ARR", 
-        "grossRenewalRate" : "Trailing 12 month Gross Retention Rate", 
+        "grossRetentionRate" : "Trailing 12 month Gross Retention Rate", 
         "netRetentionRate": "Trailing 12 month Net Retention Rate", 
         "yearlyRevenueGrowth" : "Yearly Revenue Growth Rate",
         "lastMonthRevenueLogo" : "Opening Period Customers",
