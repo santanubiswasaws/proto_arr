@@ -21,14 +21,17 @@ from arr_lib import ai_helper as ah
 
 import arr_lib.arr_charts as ac
 
-st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
-st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
-st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
 llm_model=ah.llm_model
 
+#st.image('insight_logo.png', use_column_width=False)
 st.header("Intelligent Assistant")
 st.markdown("<br>", unsafe_allow_html=True)
+
+
+st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
+st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
+st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
 
 load_dotenv()
 

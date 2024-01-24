@@ -22,13 +22,14 @@ def clear_session_cb ():
 def main():
 
     st.set_page_config(page_title="ARR Analysis" , layout='wide')
+    #st.image('insight_logo.png', use_column_width=False)
     st.header("Analyze Annual Recurring Revnue (ARR)")
 
 
     st.markdown(BUTTON_STYLE, unsafe_allow_html=True)
     st.markdown(MARKDOWN_STYLES, unsafe_allow_html=True)
     st.markdown(GLOBAL_STYLING, unsafe_allow_html=True)
-
+    
     # Initialize file upload details 
     if 'uploaded_file' not in st.session_state:
         st.session_state.uploaded_file = None
