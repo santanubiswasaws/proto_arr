@@ -144,6 +144,9 @@ with st.spinner("Getting the assistant all geared up with data - almost ready to
                                             aggfunc='first').fillna(0)
         # Resetting the index to turn the indexes back into columns
         pivoted_agg_df.reset_index(inplace=True)
+
+        # this is for display only 
+        pivoted_cust_df['customerId'] = pivoted_cust_df.apply(lambda row: str(row['customerId']) + '-' + row['customerName'], axis=1)
         st.session_state.pivoted_agg_df = pivoted_agg_df
 
         st.session_state.prepare_ai_data = False
@@ -151,6 +154,9 @@ with st.spinner("Getting the assistant all geared up with data - almost ready to
     unique_customers_dict = st.session_state.unique_customers_dict
 
     pivoted_cust_df = st.session_state.pivoted_cust_df 
+
+    # pivoted_cust_df.drop(columns=['customerId'], inplace=True)
+    # pivoted_cust_df['customerId'] = pivoted_cust_df.apply(lambda row: str(row['customerId']) + '-' + row['customerName'], axis=1)
     pivoted_cust_df['year'] = pd.to_numeric(pivoted_cust_df['year'], errors='coerce').fillna(0).astype(int)
     pivoted_cust_df['monthOfYear'] = pd.to_numeric(pivoted_cust_df['monthOfYear'], errors='coerce').fillna(0).astype(int)  
 
