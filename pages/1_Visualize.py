@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_extras.metric_cards import style_metric_cards
 import pandas as pd
 import altair as alt
 from pandas.tseries.offsets import MonthEnd
@@ -149,6 +150,29 @@ with card_tab2:
     with card_col5a: 
         # Gross retention 
         st.metric(label="Gross Retention (NRR))", value=gr, delta=None)
+
+
+# Metrics card styling elements 
+        
+    # background_color: str = "#FFF",
+    # border_size_px: int = 1,
+    # border_color: str = "#CCC",
+    # border_radius_px: int = 5,
+    # border_left_color: str = "#9AD8E1",
+    # box_shadow: bool = True,
+
+style_metric_cards(
+        border_color = "#CCC",
+        border_left_color = "#E0E0E0",    
+        box_shadow = False)
+
+
+    # background_color: str = "#FFF",
+    # border_size_px: int = 1,
+    # border_color: str = "#CCC",
+    # border_radius_px: int = 5,
+    # border_left_color: str = "#9AD8E1",
+    # box_shadow: bool = True,
 
 
 st.markdown("<br><br>", unsafe_allow_html=True)
