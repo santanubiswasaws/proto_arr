@@ -236,7 +236,7 @@ with st.expander("Show/Hide Customer MRR details"):
     st.markdown("<br>", unsafe_allow_html=True)
     st.dataframe(pivoted_cust_df, use_container_width=True)
 
-with st.expander("Show/Hide aggregated ARR details"): 
+with st.expander("Show/Hide aggregated MRR details"): 
     st.markdown("<br>", unsafe_allow_html=True)
     st.dataframe(pivoted_agg_df, use_container_width=True)
 
@@ -285,6 +285,36 @@ with st.expander("Show/Hide Full Query History"):
             st.markdown("---")  # Horizontal line after each answer
 
 
+
+# Ensure the llm_outputs subfolder exists
+output_folder = 'llm_votes'
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# Function to append question and answer to a file within the llm_outputs subfolder
+def append_to_file(filename, question, answer):
+    filepath = os.path.join(output_folder, filename)
+    with open(filepath, 'a') as f:
+        f.write(f"Question: {question}\nAnswer: {answer}\n\n")
+
+
+
+# question = st.text_input("Question", "Enter your question here")
+# answer = st.text_area("Answer", "LLM generated answer will appear here")
+
+# # Buttons for user classification
+# col1, col2 = st.columns(2)
+# with col1:
+#     if st.button('👍 Accurate'):
+#         # Append question and answer to the "correct_answers.txt" file in the llm_outputs subfolder
+#         append_to_file('correct_answers.txt', question, answer)
+#         st.success("Classified as accurate. Thank you for your feedback!")
+
+# with col2:
+#     if st.button('👎 Inaccurate'):
+#         # Append question and answer to the "incorrect_answers.txt" file in the llm_outputs subfolder
+#         append_to_file('incorrect_answers.txt', question, answer)
+#         st.error("Classified as inaccurate. We'll use your feedback to improve!")
 
 
 
