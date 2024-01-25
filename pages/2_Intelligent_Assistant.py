@@ -78,7 +78,7 @@ if 'pivoted_agg_df' not in st.session_state:
 if 'unique_customers_dict' not in st.session_state: 
     st.session_state.unique_customers_dict = {}
 
-with st.spinner("Preparing data for the assistant"): 
+with st.spinner("Getting the assistant all geared up with data - almost ready to roll!"): 
     if (st.session_state.prepare_ai_data): 
 
         # Remove duplicates based on customerName and customerId
