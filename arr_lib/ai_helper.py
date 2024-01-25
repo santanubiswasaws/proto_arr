@@ -1,4 +1,5 @@
 from fuzzywuzzy import process
+import math
 
 # utilities for helping AI 
 llm_model="gpt-3.5-turbo-0613"
@@ -31,11 +32,21 @@ Answer: customer_arr_df
 Question: "what is the tcv for customer A in September of 2020?"
 Answer: customer_arr_df
 
+
+Question: "what is the tcv for account A in September of 2020?"
+Answer: customer_arr_df
+
 Question: "Which customers churned in 2023?"
+Answer: customer_arr_df
+
+Question: "Which accounts churned in 2023?"
 Answer: customer_arr_df
 
 Question: "What is the net retention rate in Q1 of 2023?"
 Answer: metrics_df
+
+Question: "List top 2 account names as of 2023-01"
+Answer: customer_arr_df
 
 Question: "I need details on the upsell amounts for customer ABC in the first quarter of 2024."
 Answer: customer_arr_df
@@ -117,6 +128,8 @@ _vocab_dict = {
     'Monthly Recurring Revenue': 'revenue',
     'MRR': 'revenue',
     'mrr': 'revenue',
+    "account" : "customer",
+    "accounts" : "customers",
     'monthly revenue' : 'revenue',
     'monthly recurring revenue': 'revenue',
     'Customer Churn Rate': 'have non-zero churn',
@@ -163,36 +176,50 @@ def translate_vocabulary(query):
         # Replace each occurrence of the key in the query with its corresponding value
         query = query.replace(key, value)
 
-    print(f"Updated Query: {query}")
+    print(f"Translated Query: {query}") 
     return query
 
 
-def preprocess_query(query, extracted_customer_name, fuzzy_matched_customer_name, fuzzy_matched_customer_id):
+def preprocess_query(query, unique_customers_dict, client):
     """
     1. Replace the query with matched customer detail -either name of id 
     2. Replace other terms/words based on the vocabulary dict - e.g. MRR to revenue 
     """
+    updated_query = query 
+  
+    # Extract customer name   
+    extracted_customer_name = extract_customer_name(query, client)
 
-    print (f"The original query -- {query} - will be rplaced for {extracted_customer_name} with {fuzzy_matched_customer_name}, and {fuzzy_matched_customer_id}")
-    # replace customer name 
+    if not is_none(extracted_customer_name):
+        fuzzy_matched_customer_name, fuzzy_matched_customer_id, match_score = fuzzy_match_customer(extracted_customer_name, unique_customers_dict)
+        
+        print(f"{fuzzy_matched_customer_name} - {fuzzy_matched_customer_id} - {match_score}")       
+        # clean up strings to eliminate quotes - sometimes returned by the name extractor 
 
-    # some times llm name extractor include quotation 
-    extracted_customer_name = extracted_customer_name.replace('"', '').replace("'", "")
+        print (f"The original query -- {query} - extracted  name: {extracted_customer_name} matched name: {fuzzy_matched_customer_name}, score:  {match_score}")
 
-    fuzzy_matched_customer_name = fuzzy_matched_customer_name.replace('"', '').replace("'", "")
-
-    fuzzy_matched_customer_id = fuzzy_matched_customer_id.replace('"', '').replace("'", "")
-
-    updated_query = query.replace(extracted_customer_name, fuzzy_matched_customer_name)
-
-    # updated_query = query.replace(extracted_customer_name, f"customerId {fuzzy_matched_customer_id}")
+        extracted_customer_name = extracted_customer_name.replace('"', '').replace("'", "")
+        fuzzy_matched_customer_name = fuzzy_matched_customer_name.replace('"', '').replace("'", "")
+        fuzzy_matched_customer_id = fuzzy_matched_customer_id.replace('"', '').replace("'", "")
+        if (not is_none(fuzzy_matched_customer_name)) & (match_score > 75) :
+            updated_query = updated_query.replace(extracted_customer_name, fuzzy_matched_customer_name)
 
     # replace other phrases based on vocabulary dictionary 
     updated_query = translate_vocabulary(updated_query)
 
-    print(f"The final query is : {updated_query}")
-
     return updated_query
+
+
+
+def is_none(s): 
+    if s is None:
+        return True
+    elif isinstance(s, str) and s.lower() == 'none':
+        return True
+    elif isinstance(s, float) and math.isnan(s):
+        return True
+    else:
+        return False
 
 
 

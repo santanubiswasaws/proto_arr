@@ -197,26 +197,9 @@ def process_query(user_query):
         response = ""
         if df_to_query == 'customer_arr_df':
             with st.spinner("Finding answer in customer metrics .."):
-
-                # Fuzzy match customer name 
-
-                # exctract customer name from the query 
-
-                extracted_customer_name = ah.extract_customer_name(user_query, client)
-
-                # fuzzy match the name against the list of customers 
-                best_match_cust_name, best_match_cust_id, match_score = ah.fuzzy_match_customer(extracted_customer_name, unique_customers_dict)
-
-                # if the match_score is below 75 - then do not process 
-
-                if match_score < 76 : 
-                    response = f"We could not locate customer {extracted_customer_name} in the data set. Please refine your query."
-                else:
-
-                    updated_query = ah. preprocess_query(user_query, extracted_customer_name, best_match_cust_name, best_match_cust_id)
-                    #user_qery_with_matched_cust = user_query.replace(extracted_customer_name, best_match_cust_name)
-                    cust_agent = crate_df_agent(pivoted_cust_df, llm_model)
-                    response = cust_agent.run(updated_query)
+                updated_query = ah. preprocess_query(user_query, unique_customers_dict, client)
+                cust_agent = crate_df_agent(pivoted_cust_df, llm_model)
+                response = cust_agent.run(updated_query)
 
         elif df_to_query == 'metrics_df':
             with st.spinner("Finding answer in aggregated metrics .."):
@@ -241,7 +224,6 @@ with st.expander("Show/Hide aggregated MRR details"):
     st.dataframe(pivoted_agg_df, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-
 
 
 with st.form(key='query_form'):
