@@ -201,6 +201,7 @@ def process_query(user_query):
                 # Fuzzy match customer name 
 
                 # exctract customer name from the query 
+
                 extracted_customer_name = ah.extract_customer_name(user_query, client)
 
                 # fuzzy match the name against the list of customers 

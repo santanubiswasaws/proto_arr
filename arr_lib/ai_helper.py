@@ -13,6 +13,24 @@ Answer: metrics_df
 Question: "What are the top 10 customers?"
 Answer: customer_arr_df
 
+Question: "what is the mrr for accentur in Jan of 2023?"
+Answer: customer_arr_df
+
+Question: "what is the MRR for customer A in Jan of 2023?"
+Answer: customer_arr_df
+
+Question: "what is the monthly recurring revenue for customer C in September of 2020?"
+Answer: customer_arr_df
+
+Question: "what is the recurring revenue for customer C in September of 2020?"
+Answer: customer_arr_df
+
+Question: "what is the contract value for customer C in September of 2020?"
+Answer: customer_arr_df
+
+Question: "what is the tcv for customer A in September of 2020?"
+Answer: customer_arr_df
+
 Question: "Which customers churned in 2023?"
 Answer: customer_arr_df
 
@@ -95,6 +113,18 @@ customer_name_extract_prompt = """
     Customer Name: "b9 technologies"
 """
 
+_vocab_dict = {
+    'Monthly Recurring Revenue': 'revenue',
+    'MRR': 'revenue',
+    'mrr': 'revenue',
+    'monthly revenue' : 'revenue',
+    'monthly recurring revenue': 'revenue',
+    'Customer Churn Rate': 'have non-zero churn',
+    'customer churn rate': 'have non-zero churn',
+    'contract value': 'revenue',
+    'tcv': 'revenue'
+}
+
 def extract_customer_name(query, llm_client):
 
     cust_full_prompt = customer_name_extract_prompt + f"\Sentence: \"{query}\"\nCustomer Name::"
@@ -126,6 +156,17 @@ def fuzzy_match_customer(name_to_match, customers_dict):
         return None, None, 0  # No name to match
 
 
+def translate_vocabulary(query):
+    print(f"Original Query: {query}")
+
+    for key, value in _vocab_dict.items():
+        # Replace each occurrence of the key in the query with its corresponding value
+        query = query.replace(key, value)
+
+    print(f"Updated Query: {query}")
+    return query
+
+
 def preprocess_query(query, extracted_customer_name, fuzzy_matched_customer_name, fuzzy_matched_customer_id):
     """
     1. Replace the query with matched customer detail -either name of id 
@@ -138,10 +179,20 @@ def preprocess_query(query, extracted_customer_name, fuzzy_matched_customer_name
     # some times llm name extractor include quotation 
     extracted_customer_name = extracted_customer_name.replace('"', '').replace("'", "")
 
+    fuzzy_matched_customer_name = fuzzy_matched_customer_name.replace('"', '').replace("'", "")
+
+    fuzzy_matched_customer_id = fuzzy_matched_customer_id.replace('"', '').replace("'", "")
+
     updated_query = query.replace(extracted_customer_name, fuzzy_matched_customer_name)
+
+    # updated_query = query.replace(extracted_customer_name, f"customerId {fuzzy_matched_customer_id}")
+
     # replace other phrases based on vocabulary dictionary 
-    # @todo 
+    updated_query = translate_vocabulary(updated_query)
 
     print(f"The final query is : {updated_query}")
 
     return updated_query
+
+
+
