@@ -211,10 +211,15 @@ def preprocess_query(query, unique_customers_dict, client):
 
 
 
-def is_none(s): 
+def is_none(input_s): 
+    """
+    Checks if a string is empty or has values like None, N/A, 'None' or "N/A" - including the quotes
+    """
+    s = str(input_s).replace("'", "").replace('"', "")
+
     if s is None:
         return True
-    elif isinstance(s, str) and s.lower() == 'none':
+    elif isinstance(s, str) and s.lower() in ['none', 'n/a', 'na']:
         return True
     elif isinstance(s, float) and math.isnan(s):
         return True
