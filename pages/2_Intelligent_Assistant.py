@@ -198,16 +198,23 @@ def process_query(user_query):
         if df_to_query == 'customer_arr_df':
             with st.spinner("Finding answer in customer metrics .."):
                 updated_query = ah. preprocess_query(user_query, unique_customers_dict, client)
-                cust_agent = crate_df_agent(pivoted_cust_df, llm_model)
-                response = cust_agent.run(updated_query)
+                try:
+                    cust_agent = crate_df_agent(pivoted_cust_df, llm_model)
+                    response = cust_agent.run(updated_query)
+                except Exception as e:
+                    print(f"An error occurred in calc AI engine: {e}")
+                    response = "Sorry - I am unable to answer that query."
 
         elif df_to_query == 'metrics_df':
             with st.spinner("Finding answer in aggregated metrics .."):
-                agg_agent = crate_df_agent(pivoted_agg_df, llm_model)
-                response = agg_agent.run(user_query)
-
+                try:
+                    agg_agent = crate_df_agent(pivoted_agg_df, llm_model)
+                    response = agg_agent.run(user_query)
+                except Exception as e:
+                    print(f"An error occurred in calc AI engine: {e}")
+                    response = "Sorry - I am unable to answer that query."
         else:
-            response = "Unable to process the query."
+            response = "Unable to process the query - please give it another try or reframe the question."
 
         st.session_state.show_last_only = True
 
