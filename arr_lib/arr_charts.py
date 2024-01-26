@@ -92,8 +92,8 @@ def cust_count_chart(df, chart_color, chart_title):
     count_df = melted_count_df[melted_count_df['measureType']=='monthlyRevenueLogo']
 
     # Transform and scale the ARR values to thousands for the bar chart
-    cust_count_result = alt.Chart(count_df).mark_bar(color=chart_color).encode(
-        x=alt.X('month', title=None),
+    cust_count_result = alt.Chart(count_df).mark_bar(color=chart_color, size=9).encode(
+        x=alt.X('month:T', axis=alt.Axis(title=None, labelAngle=270, labelOverlap=True)),
         y=alt.Y('customerCount:Q', title="Monthly Count ", axis=alt.Axis(format=',.0f')) 
     ).properties(
         title=chart_title,
@@ -272,7 +272,7 @@ def cust_arr_waterfall_chart(df,  chart_title):
 
     # Create a line chart
     arr_wf_chart = alt.Chart(melted_arr_df).mark_line(point=True).encode(
-        x=alt.X('month', axis=alt.Axis(title=None, labelAngle=270, labelOverlap=True)),  # Assuming 'month' is of datetime type; if not, change to 'month:N'
+        x=alt.X('month:T', axis=alt.Axis(title=None, labelAngle=270, labelOverlap=True)),  # Assuming 'month' is of datetime type; if not, change to 'month:N'
         y=alt.Y('MRR:Q', axis=alt.Axis(title='Customer MRR', format=',.0f'), scale=alt.Scale(domain=(min_mrr, max_mrr))),
         color=alt.Color('translated_measureType:N', scale=alt.Scale(domain=list(color_scheme.keys()), range=list(color_scheme.values())), legend=alt.Legend(title=None, orient='top')),  # Position legend at top
         tooltip=['month', 'translated_measureType', 'MRR']
