@@ -162,6 +162,7 @@ with card_tab2:
     # box_shadow: bool = True,
 
 style_metric_cards(
+        background_color = "#F2F5F5",
         border_color = "#CCC",
         border_left_color = "#E0E0E0",    
         box_shadow = False)

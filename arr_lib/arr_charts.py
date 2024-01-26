@@ -73,7 +73,7 @@ def arr_walk_chart(metrics_df, bar_color, chart_title):
         color='gray'
     ).configure_axis(
         gridColor='#efefef'  # Set grid line color
-    )    
+    )
 
     return arr_walk_chart
 
