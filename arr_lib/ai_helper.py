@@ -63,6 +63,9 @@ Answer: metrics_df
 Question: "What is the total revenue for 2024?"
 Answer: metrics_df
 
+Question: "For which month there is negative churn value for Deloite?"
+Answer: customer_arr_df 
+
 Question: "What is the total ARR for 2024?"
 Answer: metrics_df
 

@@ -77,7 +77,7 @@ with card_tab1:  # Adjusted metrics
     #
     st.markdown("<br>", unsafe_allow_html=True)
 
-    card_col1, card_col2, card_col3, card_col4, card_col5 = st.columns(5)
+    card_col1, card_col2, card_col3, card_col4, card_col5, card_col6 = st.columns([3,3,3,3,3,1])
 
     with card_col1: 
         # ARR and growth
@@ -131,7 +131,7 @@ with card_tab2:
     
     st.markdown("<br>", unsafe_allow_html=True)
 
-    card_col1a, card_col2a, card_col3a, card_col4a, card_col5a = st.columns(5)
+    card_col1a, card_col2a, card_col3a, card_col4a, card_col5a, card_col6a = st.columns([3,3,3,3,3,1])
 
     with card_col1a: 
         # ARR and growth
@@ -168,15 +168,8 @@ style_metric_cards(
         box_shadow = False)
 
 
-    # background_color: str = "#FFF",
-    # border_size_px: int = 1,
-    # border_color: str = "#CCC",
-    # border_radius_px: int = 5,
-    # border_left_color: str = "#9AD8E1",
-    # box_shadow: bool = True,
 
-
-st.markdown("<br><br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 ##
 ## ARR Analytics 
 ##
@@ -194,6 +187,7 @@ with arr_tab2:
     upld_arr_result = ac.arr_walk_chart(metrics_df, '#77aaca', 'Uploaded ARR')
     st.altair_chart(upld_arr_result, theme="streamlit", use_container_width=False)
 
+st.markdown("<br>", unsafe_allow_html=True)
 
 
 ##
@@ -215,6 +209,8 @@ with cust_cout_tab1:
     replan_cust_count_result = ac.cust_count_chart(replan_logo_metrics_df, '#88b988', 'Adjusted Customer Count' )
     st.altair_chart(replan_cust_count_result, theme="streamlit", use_container_width=False)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # customer count waterfall
     replan_cust_count_wf_result = ac.cust_count_waterfall_chart (replan_logo_metrics_df, 'Adjusted Customer Count Waterfall' )
     st.altair_chart(replan_cust_count_wf_result, theme="streamlit", use_container_width=False)
@@ -228,12 +224,13 @@ with cust_cout_tab2:
     replan_cust_count_result = ac.cust_count_chart(logo_metrics_df, '#77aaca', 'Uploaded Customer Count' )
     st.altair_chart(replan_cust_count_result, theme="streamlit", use_container_width=False)
 
+    st.markdown("<br>", unsafe_allow_html=True)
 
     # Customer count waterfall 
     cust_count_wf_result = ac.cust_count_waterfall_chart (logo_metrics_df, 'Customer Count Waterfall' )
     st.altair_chart(cust_count_wf_result, theme="streamlit", use_container_width=False)
 
-
+st.markdown("<br>", unsafe_allow_html=True)
 
 ##
 ## Top customer analysis 
@@ -257,6 +254,7 @@ with top_cust_tab2:
     top_final_chart1 = ac.top_cust_chart(customer_arr_df, '#77aaca', 'Top Customers - Uploaded' )
     st.altair_chart(top_final_chart1, theme="streamlit", use_container_width=False)
 
+st.markdown("<br>", unsafe_allow_html=True)
 
 ##
 ## Customer MRR Analysis 

@@ -40,7 +40,7 @@ def arr_walk_chart(metrics_df, bar_color, chart_title):
     # Transform and scale the ARR values to thousands for the bar chart
     bar_chart = alt.Chart(quarterly_data).transform_calculate(
         scaled_arr="datum.ARR / 1000"  # Scaling the ARR to thousands
-    ).mark_bar(color=bar_color).encode(
+    ).mark_bar(color=bar_color, cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
         x=alt.X('quarter', title=None),
         y=alt.Y('scaled_arr:Q', title="Quarterly ARR (in Thousands) ", axis=alt.Axis(format=',.0f')) 
     )
@@ -63,8 +63,11 @@ def arr_walk_chart(metrics_df, bar_color, chart_title):
     # Layer the text and the bar chart
     arr_walk_chart = alt.layer(bar_chart, text_chart).properties(
         title=chart_title,
-        width=800,
-        height=400
+        width=1100,
+        height=400,
+        padding= {"bottom": 15, "top":20, "left": 15, "right": 15}
+    ).configure(
+    background="#F5F8F8" # Set the background color
     ).configure_title(
         fontSize=14,
         fontWeight='normal', 
@@ -72,11 +75,10 @@ def arr_walk_chart(metrics_df, bar_color, chart_title):
         orient='bottom', 
         color='gray'
     ).configure_axis(
-        gridColor='#efefef'  # Set grid line color
+        gridColor='#e0e0e0'  # Set grid line color
     )
 
     return arr_walk_chart
-
 
 
 
@@ -92,13 +94,16 @@ def cust_count_chart(df, chart_color, chart_title):
     count_df = melted_count_df[melted_count_df['measureType']=='monthlyRevenueLogo']
 
     # Transform and scale the ARR values to thousands for the bar chart
-    cust_count_result = alt.Chart(count_df).mark_bar(color=chart_color, size=9).encode(
+    cust_count_result = alt.Chart(count_df).mark_bar(color=chart_color, size=9, cornerRadiusTopLeft=3, cornerRadiusTopRight=3).encode(
         x=alt.X('month:T', axis=alt.Axis(title=None, labelAngle=270, labelOverlap=True)),
         y=alt.Y('customerCount:Q', title="Monthly Count ", axis=alt.Axis(format=',.0f')) 
     ).properties(
         title=chart_title,
-        width=800,
-        height=350
+        width=1100,
+        height=350,
+        padding= {"bottom": 15, "top":20, "left": 15, "right": 15}
+    ).configure(
+        background="#F5F8F8" # Set the background color
     ).configure_title(
         fontSize=14,
         fontWeight='normal',
@@ -106,7 +111,7 @@ def cust_count_chart(df, chart_color, chart_title):
         orient='bottom', 
         color='gray'
     ).configure_axis(
-        gridColor='#efefef'  # Set grid line color
+        gridColor='#e0e0e0'  # Set grid line color
     )
 
     return cust_count_result
@@ -156,14 +161,20 @@ def cust_count_waterfall_chart(df,  chart_title):
         tooltip=['month', 'translated_measureType', 'customerCount']
     ).properties(
         title=chart_title,
-        width=800,
-        height=350
+        width=1100,
+        height=350,
+        padding= {"bottom": 15, "top":15, "left": 15, "right": 15}
+    ).configure(
+        background="#F5F8F8" # Set the background color
     ).configure_title(
         fontSize=14,
         fontWeight='normal',
         anchor='middle',
         orient='bottom', 
-        color='gray')
+        color='gray'
+    ).configure_axis(
+        gridColor='#e0e0e0'  # Set grid line color
+    )
     
     return count_wf_chart
 
@@ -190,7 +201,7 @@ def top_cust_chart(customer_arr_df, bar_color, chart_title):
 
     top_bar_chart = alt.Chart(top_10_customers).transform_calculate(
         scaled_tcv="datum.Total_Sales / 1000"  # Scaling the ARR to thousands
-    ).mark_bar(color=bar_color).encode(
+    ).mark_bar(color=bar_color, cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
         x=alt.X('customerName', title=None, sort=None),
         y=alt.Y('scaled_tcv:Q', title="Total Contract Values (in Thousands)", axis=alt.Axis(format=',.0f'))
     )
@@ -212,8 +223,11 @@ def top_cust_chart(customer_arr_df, bar_color, chart_title):
     # Layer the text and the bar chart
     top_final_chart = alt.layer(top_bar_chart, top_text_chart).properties(
         title=chart_title,
-        width=800,
-        height=500
+        width=1100,
+        height=500,
+        padding= {"bottom": 15, "top":25, "left": 15, "right": 15}
+    ).configure(    
+        background="#F5F8F8" # Set the background color
     ).configure_title(
         fontSize=14,
         fontWeight='normal', 
@@ -221,7 +235,7 @@ def top_cust_chart(customer_arr_df, bar_color, chart_title):
         orient='bottom', 
         color='gray'
     ).configure_axis(
-        gridColor='#efefef'  # Set grid line color
+        gridColor='#e0e0e0'  # Set grid line color
     )    
 
     return top_final_chart
@@ -278,13 +292,19 @@ def cust_arr_waterfall_chart(df,  chart_title):
         tooltip=['month', 'translated_measureType', 'MRR']
     ).properties(
         title=chart_title,
-        width=1000,
-        height=600
+        width=1100,
+        height=600,
+        padding= {"bottom": 15, "top":25, "left": 15, "right": 15}
+    ).configure(    
+        background="#F5F8F8" # Set the background color
     ).configure_title(
         fontSize=14,
         fontWeight='normal',
         anchor='middle',
         orient='bottom', 
-        color='gray')
+        color='gray'
+    ).configure_axis(
+        gridColor='#e0e0e0'  # Set grid line color
+    )
     
     return arr_wf_chart

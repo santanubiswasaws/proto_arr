@@ -247,6 +247,8 @@ def main():
                 
         st.markdown("<br><br>", unsafe_allow_html=True)
 
+        new_scratchpad = False
+
         if 'planning_df' not in st.session_state:
                 st.session_state.planning_df = pd.DataFrame(columns=['customerId', 'measureType'])
 
@@ -268,6 +270,7 @@ def main():
             try:
                 with st.spinner("Creating planning sheet"):
                     
+                    new_scratchpad = True
                     #reset panning_df 
                     if 'planning_df' in st.session_state:
                         st.session_state.planning_df = pd.DataFrame()
@@ -297,8 +300,19 @@ def main():
 
                 st.markdown(f"<br><p class='md_big'>Edit MRR data if needed (directly in the table below or use csv/excel and copy/paste)</p>", unsafe_allow_html=True)
                 # set index to customerName - for freeze pane functionality
+
+                scratch_df = pd.DataFrame()
+                # if new_scratchpad:  
+                #     display_planning_df = st.session_state.planning_df.round(2)
+                #     display_planning_df.set_index(['customerName'], inplace=True)
+                #     scratch_df = display_planning_df
+                #     new_scratchpad = False
+                # else: 
+                #     scratch_df = st.session_state.edited_df 
+
                 display_planning_df = st.session_state.planning_df.round(2)
                 display_planning_df.set_index(['customerName'], inplace=True)
+
                 # edited_df = st.data_editor(display_planning_df, key=st.session_state["random_key"], disabled=('customerId', 'measureType'), num_rows='dynamic', hide_index=False, use_container_width=True)
                 edited_df = st.data_editor(display_planning_df, key=st.session_state["random_key"], num_rows='dynamic', hide_index=False, use_container_width=True)
                 
